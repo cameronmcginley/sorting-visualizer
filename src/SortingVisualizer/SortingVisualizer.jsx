@@ -42,6 +42,7 @@ export default class SortingVisualizer extends React.Component {
         this.timeoutsClear = [];
         animations = [];
         pauseFrame = 0;
+        maxFrames = 0;
         pause = false;
         running = false;
 
@@ -76,7 +77,7 @@ export default class SortingVisualizer extends React.Component {
         running = true;
 
         //Don't get new animations if resuming
-        if (animations.length == 0) animations = getMergeSortAnimations(this.state.array);
+        if (animations.length === 0) animations = getMergeSortAnimations(this.state.array);
         
         //Reset async animations
         this.timeouts = [];
