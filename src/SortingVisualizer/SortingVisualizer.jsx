@@ -15,7 +15,11 @@ const PRIMARY_COLOR = '#4054d6';
 const SECONDARY_COLOR = '#1f2e92';
 
 let pauseFrame = 0;
+
+//Running is true from the time animation is started until it is stopped
+//Stays true when paused
 let running = false;
+
 let pause = false;
 let animations = [];
 let maxFrames = 0;
@@ -137,6 +141,7 @@ export default class SortingVisualizer extends React.Component {
     }
 
     pauseAnim(){
+        //Only pause while running
         if (running === true){
             console.log("Pause");
             pause = true;
@@ -161,13 +166,38 @@ export default class SortingVisualizer extends React.Component {
         }
     }
 
-    resumeAnim(){
+    playAnim(){
+        //Act as a resume button if paused
         if (pause === true){
             console.log("Resuming on frame ");
             console.log(pauseFrame);
             pause = false;
 
             this.mergeSort();
+        }
+        //Start button, initiate selected sorting algorithm
+        else if (running === false) {
+             //Get the drop down menu
+             let input = document.querySelector("#test");
+             if (input) console.log(input.text)
+
+             switch (input.value){
+                 case "1":
+                     this.mergeSort();
+                     break;
+                 case "2":
+                     this.mergeSort();
+                     break;
+                 case "3":
+                     this.mergeSort();
+                     break;
+                 case "4":
+                     this.mergeSort();
+                     break;
+                 default:
+                     console.log("Unkown Selection");
+                     break;
+             }
         }
     }
 
@@ -186,7 +216,7 @@ export default class SortingVisualizer extends React.Component {
 
     render() {
         const { array } = this.state;
-        // Invisible bar at max height placed at end, makes it so generating new arrays doesn't change div height
+
         return (
             <div className="array-container">
                 {array.map((value, idx) => (
@@ -200,6 +230,7 @@ export default class SortingVisualizer extends React.Component {
                         }}></div>
                 ))}
 
+                {/* Invisible bar at max height placed at end, makes it so generating new arrays doesn't change div height */}
                 <div
                     className="array-bar"
                     style={{
@@ -209,9 +240,18 @@ export default class SortingVisualizer extends React.Component {
                     }}></div>
                 
                 <button className="lock" onClick={() => this.resetArray()}>Generate New Array</button>
+
+                <select className="lock" id="test">
+                    <option value="1">Merge Sort</option>
+                    <option value="2">Quick Sort</option>
+                    <option value="3">Bubble Sort</option>
+                    <option value="4">Insertion Sort</option>
+                </select>
+
+                <button onClick={() => this.playAnim()}>Play</button>
+
                 <button onClick={() => this.pauseAnim()}>Pause</button>
-                <button onClick={() => this.resumeAnim()}>Resume</button>
-                <button className="lock" onClick={() => this.mergeSort()}>Merge Sort</button>
+
                 <button onClick={() => this.getInfo()}>Info</button>
             </div>
         );
