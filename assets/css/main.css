@@ -65,7 +65,7 @@ body {
 }
 
 #main {
-    padding: 3rem 0 0 0;
+    padding: 3rem 0 3rem 0;
 }
 
 #main .content {
@@ -77,6 +77,13 @@ body {
     width: 75rem;
     margin: 0 auto;
     max-width: calc(100% - 6rem);
+}
+
+/* Div that holds buttons */
+.options {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 button {
@@ -117,4 +124,14 @@ select {
 select:disabled {
     background-color: rgba(0, 0, 0, 0.1);
     cursor: default;
+}
+
+input[type="range"] {
+    cursor: pointer;
+    font-weight: 550;
+    height: 3.25rem;
+    line-height: 3.25rem;
+    width: 10rem;
+    margin: 0.25rem;
+    background-color: transparent;
 }
