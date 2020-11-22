@@ -3,10 +3,10 @@ import { getMergeSortAnimations } from '../SortingAlgorithms/SortingAlgorithms.j
 import './SortingVisualizer.css';
 
 // Change this value for the speed of the animations.
-const ANIMATION_SPEED_MS = 1;
+let ANIMATION_SPEED_MS;
 
 // Change this value for the number of bars (value) in the array.
-const NUMBER_OF_ARRAY_BARS = 500;
+let NUMBER_OF_ARRAY_BARS;
 
 // This is the main color of the array bars.
 const PRIMARY_COLOR = '#4054d6';
@@ -14,6 +14,7 @@ const PRIMARY_COLOR = '#4054d6';
 // This is the color of array bars that are being compared throughout the animations.
 const SECONDARY_COLOR = '#1f2e92';
 
+//Where to starting queueing frames from animations[]
 let pauseFrame = 0;
 
 //Running is true from the time animation is started until it is stopped
@@ -41,6 +42,7 @@ export default class SortingVisualizer extends React.Component {
     }
 
     resetArray() {
+        //Reset variables
         const array = [];
         this.timeouts = [];
         this.timeoutsClear = [];
@@ -49,7 +51,16 @@ export default class SortingVisualizer extends React.Component {
         maxFrames = 0;
         pause = false;
         running = false;
+        this.enableButtons();
+        
+        //Get values from sliders
+        NUMBER_OF_ARRAY_BARS = document.querySelector(".size").value;
+        ANIMATION_SPEED_MS = document.querySelector(".speed").value;
 
+        //Disable pause button when not running
+        document.querySelector(".pause").disabled = true;
+
+        //Fill out the array
         for (let i = 0; i < NUMBER_OF_ARRAY_BARS; i++) {
             array.push(randomIntFromInterval(5, 450));
         }
@@ -58,17 +69,25 @@ export default class SortingVisualizer extends React.Component {
 
     enableButtons(){
         //Static NodeList of all buttons to toggle
-        const buttons = document.querySelectorAll('.lock');
+        let buttons = document.querySelectorAll('.lock');
 
         //Enable buttons
         for (let btn of buttons){
             btn.disabled = false;
         }
+        //Keep size slider and dropdown menu disabled
+        if (running === true) {
+            let size = document.querySelector('.size');
+            let dropdown = document.querySelector('.dropdown');
+
+            if (size) size.disabled = true;
+            if (dropdown) dropdown.disabled = true;
+        }
     }
 
     disableButtons(){
         //Static NodeList of all buttons to toggle
-        const buttons = document.querySelectorAll('.lock');
+        let buttons = document.querySelectorAll('.lock');
         
         //Disable buttons
         for (let btn of buttons){
@@ -80,12 +99,11 @@ export default class SortingVisualizer extends React.Component {
         this.disableButtons();
         running = true;
 
+        //Get speed, can be updated while paused
+        ANIMATION_SPEED_MS = document.querySelector(".speed").value;
+
         //Don't get new animations if resuming
         if (animations.length === 0) animations = getMergeSortAnimations(this.state.array);
-        
-        //Reset async animations
-        this.timeouts = [];
-        this.timeoutsClear = [];
 
         //Animate
         for (let i = pauseFrame; i < animations.length; i++) {
@@ -112,12 +130,15 @@ export default class SortingVisualizer extends React.Component {
                     const barOneStyle = arrayBars[barOneIdx].style;
                     barOneStyle.height = `${newHeight}px`;
         
-                    //On last frame:
+                    //On last frame of animation
                     if (i === animations.length -1){
-                        this.enableButtons();
                         animations = [];
                         maxFrames = 0;
                         running = false;
+
+                        document.querySelector(".play").disabled = false;
+                        document.querySelector(".pause").disabled = true;
+                        this.enableButtons();
                         console.log("Animation Finished");
                     }
 
@@ -125,15 +146,13 @@ export default class SortingVisualizer extends React.Component {
                 }, (i-pauseFrame) * ANIMATION_SPEED_MS));
             }
 
+            //Clears completed setTimeout, then removes from timeouts array
             this.timeoutsClear.push(setTimeout(() => {
-                //Clears completed setTimeout, then removes from timeouts array
                 clearTimeout(this.timeouts[0]);
                 this.timeouts.shift();
 
-                //console.log("AnimCleared");
-            }, (i-pauseFrame) * ANIMATION_SPEED_MS +  ANIMATION_SPEED_MS));
-
-            //console.log(this.timeouts);
+               // console.log("AnimCleared");
+            }, (i-pauseFrame) * ANIMATION_SPEED_MS));
         }
         //Doesn't update when calling resume, since the length will be shorter
         //since it is building timeouts from just the pause point
@@ -141,44 +160,48 @@ export default class SortingVisualizer extends React.Component {
     }
 
     pauseAnim(){
-        //Only pause while running
-        if (running === true){
-            console.log("Pause");
-            pause = true;
-            pauseFrame = maxFrames - this.timeouts.length;
+        //Toggle buttons
+        document.querySelector(".play").disabled = false;
+        document.querySelector(".pause").disabled = true;
+        this.enableButtons();
 
-            //Iterates through all frames and clears them
-            for (let i = 0; i < this.timeouts.length; i++) {
-                clearTimeout(this.timeouts[i]);
-            }
-            this.timeouts = [];
+        pause = true;
+        pauseFrame = maxFrames - this.timeouts.length;
 
-            //Iterates through all frames and clears them
-            for (let i = 0; i < this.timeoutsClear.length; i++) {
-                clearTimeout(this.timeoutsClear[i]);
-            }
-            this.timeoutsClear = [];
+        console.log("Paused on frame:")
+        console.log(pauseFrame);
 
-            console.log("pauseFrame");
-            console.log(pauseFrame);
-
-            this.enableButtons();
+        //Iterates through all queued frames and clears them
+        for (let i = 0; i < this.timeouts.length; i++) {
+            clearTimeout(this.timeouts[i]);
         }
+
+        //Iterates through all queued frames and clears them
+        for (let i = 0; i < this.timeoutsClear.length; i++) {
+            clearTimeout(this.timeoutsClear[i]);
+        }
+        this.timeouts = [];
+        this.timeoutsClear = [];
     }
 
     playAnim(){
+        //Toggle buttons
+        document.querySelector(".play").disabled = true;
+        document.querySelector(".pause").disabled = false;
+
         //Act as a resume button if paused
         if (pause === true){
-            console.log("Resuming on frame ");
+            console.log("Resuming on frame");
             console.log(pauseFrame);
             pause = false;
 
+            //Requeue frames after pauseFrame
             this.mergeSort();
         }
         //Start button, initiate selected sorting algorithm
         else if (running === false) {
              //Get the drop down menu
-             let input = document.querySelector("#test");
+             let input = document.querySelector(".dropdown");
              if (input) console.log(input.text)
 
              switch (input.value){
@@ -212,47 +235,59 @@ export default class SortingVisualizer extends React.Component {
         console.log(animations);
         console.log("maxFrames");
         console.log(maxFrames);
+        console.log("Frames Completed");
+        console.log(maxFrames - this.timeouts.length);
     }
 
     render() {
         const { array } = this.state;
 
         return (
-            <div className="array-container">
-                {array.map((value, idx) => (
+            <div>
+                <div className="array-container">
+                    {array.map((value, idx) => (
+                        <div
+                            className="array-bar"
+                            key={idx}
+                            style={{
+                                backgroundColor: PRIMARY_COLOR,
+                                height: `${value}px`,
+                                width: 100 / NUMBER_OF_ARRAY_BARS + `%`,
+                            }}></div>
+                    ))}
+
+                    {/* Invisible bar at max height placed at end, makes it so generating new arrays doesn't change div height */}
                     <div
                         className="array-bar"
-                        key={idx}
                         style={{
                             backgroundColor: PRIMARY_COLOR,
-                            height: `${value}px`,
-                            width: 100 / NUMBER_OF_ARRAY_BARS + `%`,
+                            height: `450px`,
+                            width: `0%`,
                         }}></div>
-                ))}
+                </div>
 
-                {/* Invisible bar at max height placed at end, makes it so generating new arrays doesn't change div height */}
-                <div
-                    className="array-bar"
-                    style={{
-                        backgroundColor: PRIMARY_COLOR,
-                        height: `450px`,
-                        width: `0%`,
-                    }}></div>
-                
-                <button className="lock" onClick={() => this.resetArray()}>Generate New Array</button>
+                <div className="options">
+                    <button className="lock" onClick={() => this.resetArray()}>Generate New Array</button>
 
-                <select className="lock" id="test">
-                    <option value="1">Merge Sort</option>
-                    <option value="2">Quick Sort</option>
-                    <option value="3">Bubble Sort</option>
-                    <option value="4">Insertion Sort</option>
-                </select>
+                    <select className="lock dropdown">
+                        <option value="1">Merge Sort</option>
+                        <option value="2">Quick Sort</option>
+                        <option value="3">Bubble Sort</option>
+                        <option value="4">Insertion Sort</option>
+                    </select>
 
-                <button onClick={() => this.playAnim()}>Play</button>
+                    <button className="play" onClick={() => this.playAnim()}>Play</button>
 
-                <button onClick={() => this.pauseAnim()}>Pause</button>
+                    <button className="pause" onClick={() => this.pauseAnim()}>Pause</button>
 
-                <button onClick={() => this.getInfo()}>Info</button>
+                    <button onClick={() => this.getInfo()}>Info</button>
+
+                    {/* Array size */}
+                    <input className="lock size" type="range" min="10" max="500" defaultValue="250"></input>
+
+                    {/* Animation speed */}
+                    <input className="lock speed" type="range" min="1" max="50" defaultValue="5"></input>
+                </div>
             </div>
         );
     }
