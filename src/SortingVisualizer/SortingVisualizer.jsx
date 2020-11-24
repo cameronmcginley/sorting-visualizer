@@ -73,13 +73,6 @@ export default class SortingVisualizer extends React.Component {
         running = false;
         this.enableButtons();
 
-        console.log(NUMBER_OF_ARRAY_BARS);
-        
-        //Get values from sliders
-        //NUMBER_OF_ARRAY_BARS = document.querySelector(".size").value;
-        //NUMBER_OF_ARRAY_BARS = document.querySelector("#input-slider").nextElementSibling.lastChild.lastChild.lastChild.valueAsNumber;
-        //NUMBER_OF_ARRAY_BARS = document.querySelector("#input-slider").getValue;
-        
         ANIMATION_SPEED_MS = document.querySelector(".speed").value;
 
         //Disable pause button when not running
@@ -103,8 +96,6 @@ export default class SortingVisualizer extends React.Component {
             }
         }
         this.setState({ array });
-        console.log(NUMBER_OF_ARRAY_BARS);
-        console.log(this.state.sizeVal);
     }
 
     enableButtons(){
@@ -346,7 +337,7 @@ export default class SortingVisualizer extends React.Component {
 
                     {/* Array size */}
                     {/*<input className="lock size" type="range" min="10" max="500" defaultValue="250"></input>*/}
-                    <InputSlider>InputSlider(sizeSlider.initVal, sizeSlider.minVal, sizeSlider.maxVal)</InputSlider>
+                    <InputSlider></InputSlider>
                     
                     {/* Animation speed */}
                     <input className="lock speed" type="range" min="1" max="50" defaultValue="5"></input>
