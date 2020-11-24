@@ -43,6 +43,7 @@ let ANIMATION_SPEED_MS = speedSlider.initVal;
 let audioCtx = new(window.AudioContext || window.webkitAudioContext)();
 
 let soundOn = false;
+let perfectArray = false;
 
 export default class SortingVisualizer extends React.Component {
     constructor(props) {
@@ -85,8 +86,21 @@ export default class SortingVisualizer extends React.Component {
         document.querySelector(".pause").disabled = true;
 
         //Fill out the array
-        for (let i = 0; i < NUMBER_OF_ARRAY_BARS; i++) {
-            array.push(randomIntFromInterval(5, 450));
+        if (perfectArray) {
+            //Build array
+            for (let i = 0; i < NUMBER_OF_ARRAY_BARS; i++) {
+                array.push((i+1) * (445 / NUMBER_OF_ARRAY_BARS));
+            }
+            //Shuffle it
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        else {
+            for (let i = 0; i < NUMBER_OF_ARRAY_BARS; i++) {
+                array.push(randomIntFromInterval(5, 450));
+            }
         }
         this.setState({ array });
         console.log(NUMBER_OF_ARRAY_BARS);
@@ -337,6 +351,7 @@ export default class SortingVisualizer extends React.Component {
                     {/* Animation speed */}
                     <input className="lock speed" type="range" min="1" max="50" defaultValue="5"></input>
 
+                    {/* Enable Sound */}
                     <FormControlLabel
                         value="top"
                         control={
@@ -348,6 +363,21 @@ export default class SortingVisualizer extends React.Component {
                             />
                         }
                         label="Enable Sound"
+                        labelPlacement="top"
+                    />
+
+                    {/* Perfect Array */}
+                    <FormControlLabel
+                        value="top"
+                        control={
+                            <Checkbox
+                                value="checkedA"
+                                inputProps={{ 'aria-label': 'Checkbox A' }}
+                                color={PRIMARY_COLOR}
+                                onChange={e => perfectArray = !perfectArray}
+                            />
+                        }
+                        label="Perfect Array"
                         labelPlacement="top"
                     />
                 </div>
