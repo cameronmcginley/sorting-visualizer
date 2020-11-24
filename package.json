@@ -1,9 +1,10 @@
 {
   "name": "sorting-visualizer",
-  "homepage": "http://cameronmcginley.com/sorting-visualizer",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://cameronmcginley.com/sorting-visualizer",
   "dependencies": {
+    "@material-ui/core": "^4.11.0",
     "@testing-library/jest-dom": "^5.11.6",
     "@testing-library/react": "^11.2.2",
     "@testing-library/user-event": "^12.2.2",

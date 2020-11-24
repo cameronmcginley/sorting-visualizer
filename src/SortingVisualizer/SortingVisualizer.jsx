@@ -2,11 +2,11 @@ import React from 'react';
 import { getMergeSortAnimations } from '../SortingAlgorithms/SortingAlgorithms.js';
 import './SortingVisualizer.css';
 
-// Change this value for the speed of the animations.
-let ANIMATION_SPEED_MS;
-
-// Change this value for the number of bars (value) in the array.
-let NUMBER_OF_ARRAY_BARS;
+import { makeStyles } from '@material-ui/core/styles';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import Slider from '@material-ui/core/Slider';
+import Input from '@material-ui/core/Input';
 
 // This is the main color of the array bars.
 const PRIMARY_COLOR = '#4054d6';
@@ -24,6 +24,24 @@ let running = false;
 let pause = false;
 let animations = [];
 let maxFrames = 0;
+
+const sizeSlider = {
+    initVal: 51,
+    minVal: 10,
+    maxVal: 500,
+}
+
+const speedSlider = {
+    initVal: 5,
+    minVal: 1,
+    maxVal: 100,
+}
+
+// Change this value for the number of bars (value) in the array.
+let NUMBER_OF_ARRAY_BARS = sizeSlider.initVal;
+
+// Change this value for the speed of the animations.
+let ANIMATION_SPEED_MS = speedSlider.initVal;
 
 export default class SortingVisualizer extends React.Component {
     constructor(props) {
@@ -52,9 +70,14 @@ export default class SortingVisualizer extends React.Component {
         pause = false;
         running = false;
         this.enableButtons();
+
+        console.log(NUMBER_OF_ARRAY_BARS);
         
         //Get values from sliders
-        NUMBER_OF_ARRAY_BARS = document.querySelector(".size").value;
+        //NUMBER_OF_ARRAY_BARS = document.querySelector(".size").value;
+        //NUMBER_OF_ARRAY_BARS = document.querySelector("#input-slider").nextElementSibling.lastChild.lastChild.lastChild.valueAsNumber;
+        //NUMBER_OF_ARRAY_BARS = document.querySelector("#input-slider").getValue;
+        
         ANIMATION_SPEED_MS = document.querySelector(".speed").value;
 
         //Disable pause button when not running
@@ -65,6 +88,8 @@ export default class SortingVisualizer extends React.Component {
             array.push(randomIntFromInterval(5, 450));
         }
         this.setState({ array });
+        console.log(NUMBER_OF_ARRAY_BARS);
+        console.log(this.state.sizeVal);
     }
 
     enableButtons(){
@@ -283,7 +308,9 @@ export default class SortingVisualizer extends React.Component {
                     <button onClick={() => this.getInfo()}>Info</button>
 
                     {/* Array size */}
-                    <input className="lock size" type="range" min="10" max="500" defaultValue="250"></input>
+                    {/*<input className="lock size" type="range" min="10" max="500" defaultValue="250"></input>*/}
+                    <InputSlider>InputSlider(sizeSlider.initVal, sizeSlider.minVal, sizeSlider.maxVal)</InputSlider>
+                    
 
                     {/* Animation speed */}
                     <input className="lock speed" type="range" min="1" max="50" defaultValue="5"></input>
@@ -292,6 +319,85 @@ export default class SortingVisualizer extends React.Component {
         );
     }
 }
+
 function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+const useStyles = makeStyles({
+    root: {
+        width: 250,
+    },
+    input: {
+        width: 42,
+    },
+});
+
+function InputSlider() {
+    const classes = useStyles();
+    const [value, setValue] = React.useState(sizeSlider.initVal);
+
+    const handleSliderChange = (event, newValue) => {
+        setValue(newValue);
+        NUMBER_OF_ARRAY_BARS = newValue;
+        //SortingVisualizer.resetArray();
+    };
+
+    const handleInputChange = (event) => {
+        let inputVal = Number(event.target.value);
+        setValue(event.target.value === '' ? '' : inputVal);
+
+        if (inputVal < sizeSlider.minVal) {
+            inputVal = sizeSlider.minVal;
+        } else if (inputVal > sizeSlider.maxVal) {
+            inputVal = sizeSlider.maxVal;
+        }
+        
+        NUMBER_OF_ARRAY_BARS = inputVal;
+    };
+
+    const handleBlur = () => {
+        if (value < sizeSlider.minVal) {
+            setValue(sizeSlider.minVal);
+        } else if (value > sizeSlider.maxVal) {
+            setValue(sizeSlider.maxVal);
+        }
+    };
+
+    return (
+        <div className={classes.root}>
+        <Typography id="input-slider" gutterBottom>
+            Size
+        </Typography>
+        <Grid container spacing={2} alignItems="center">
+            <Grid item>
+            </Grid>
+            <Grid item xs>
+            <Slider
+                value={typeof value === 'number' ? value : 0}
+                onChange={handleSliderChange}
+                aria-labelledby="input-slider"
+                min={sizeSlider.minVal}
+                max={sizeSlider.maxVal}
+            />
+            </Grid>
+            <Grid item>
+            <Input
+                className={classes.input}
+                value={value}
+                margin="dense"
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                inputProps={{
+                step: 10,
+                min: sizeSlider.minVal,
+                max: sizeSlider.maxVal,
+                type: 'number',
+                'aria-labelledby': 'input-slider',
+                }}
+            />
+            </Grid>
+        </Grid>
+        </div>
+    );
 }
