@@ -126,6 +126,7 @@ export default class SortingVisualizer extends React.Component {
         }
     }
 
+    //https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
     playSound(barHeight) {
         var oscillator = audioCtx.createOscillator();
         var gainNode = audioCtx.createGain();
