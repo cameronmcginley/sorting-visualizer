@@ -1,14 +1,9 @@
 import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import { Checkbox, Grid, Typography, Slider, Input, FormControlLabel } from '@material-ui/core';
+
 import { getMergeSortAnimations } from '../SortingAlgorithms/SortingAlgorithms.js';
 import './SortingVisualizer.css';
-
-import { makeStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
-import Slider from '@material-ui/core/Slider';
-import Input from '@material-ui/core/Input';
-import { Checkbox } from '@material-ui/core';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 // This is the main color of the array bars.
 const PRIMARY_COLOR = '#4054d6';
