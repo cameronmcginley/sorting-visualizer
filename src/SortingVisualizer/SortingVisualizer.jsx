@@ -7,6 +7,8 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import Input from '@material-ui/core/Input';
+import { Checkbox } from '@material-ui/core';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 // This is the main color of the array bars.
 const PRIMARY_COLOR = '#4054d6';
@@ -42,6 +44,10 @@ let NUMBER_OF_ARRAY_BARS = sizeSlider.initVal;
 
 // Change this value for the speed of the animations.
 let ANIMATION_SPEED_MS = speedSlider.initVal;
+
+let audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+
+let soundOn = false;
 
 export default class SortingVisualizer extends React.Component {
     constructor(props) {
@@ -120,6 +126,25 @@ export default class SortingVisualizer extends React.Component {
         }
     }
 
+    playSound(barHeight) {
+        var oscillator = audioCtx.createOscillator();
+        var gainNode = audioCtx.createGain();
+      
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+      
+        gainNode.gain.value = 0.2;
+        oscillator.frequency.value = parseInt(barHeight, 10) * 1.2 + 200;
+        oscillator.type = 'square';
+      
+        oscillator.start();
+      
+        setTimeout(
+          function() {
+            oscillator.stop();
+          }, ANIMATION_SPEED_MS);
+      }
+
     mergeSort() {
         this.disableButtons();
         running = true;
@@ -144,6 +169,8 @@ export default class SortingVisualizer extends React.Component {
                 this.timeouts.push(setTimeout(() => {
                     barOneStyle.backgroundColor = color;
                     barTwoStyle.backgroundColor = color;
+
+                    if (soundOn) this.playSound(barOneStyle.height);
 
                     //console.log("AnimColorPlayed");
                 }, (i-pauseFrame) * ANIMATION_SPEED_MS));
@@ -311,9 +338,22 @@ export default class SortingVisualizer extends React.Component {
                     {/*<input className="lock size" type="range" min="10" max="500" defaultValue="250"></input>*/}
                     <InputSlider>InputSlider(sizeSlider.initVal, sizeSlider.minVal, sizeSlider.maxVal)</InputSlider>
                     
-
                     {/* Animation speed */}
                     <input className="lock speed" type="range" min="1" max="50" defaultValue="5"></input>
+
+                    <FormControlLabel
+                        value="top"
+                        control={
+                            <Checkbox
+                                value="checkedA"
+                                inputProps={{ 'aria-label': 'Checkbox A' }}
+                                color={PRIMARY_COLOR}
+                                onChange={e => soundOn = !soundOn}
+                            />
+                        }
+                        label="Enable Sound"
+                        labelPlacement="top"
+                    />
                 </div>
             </div>
         );
