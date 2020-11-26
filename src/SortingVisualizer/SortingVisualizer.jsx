@@ -43,6 +43,8 @@ let ANIMATION_SPEED_MS = speedSlider.initVal;
 let audioCtx = new(window.AudioContext || window.webkitAudioContext)();
 let oscillator = audioCtx.createOscillator();
 let gainNode = audioCtx.createGain();
+//Default to mute
+gainNode.gain.value = 0.000001;
 
 let soundOn = false;
 let perfectArray = false;
@@ -129,6 +131,9 @@ export default class SortingVisualizer extends React.Component {
     }
 
     //https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
+    //Oscillator always plays during animation. If sound checkbox is unchecked,
+    //the oscillitor is muted. This allows starting/stopping it by making the checkbox
+    //simply control volume
     playSound(barHeight) {
         //Start oscillator on first iteration
         if (oscillator.context.state !== "running") {
@@ -136,13 +141,12 @@ export default class SortingVisualizer extends React.Component {
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            gainNode.gain.value = 0.03;
             oscillator.frequency.value = (parseInt(barHeight, 10) * 2) + 110;
             oscillator.type = 'triangle';
 
             oscillator.start();
         }
-        
+
         oscillator.frequency.value = (parseInt(barHeight, 10) * 2) + 110;
 
         //Kill oscillator
@@ -188,7 +192,8 @@ export default class SortingVisualizer extends React.Component {
                     const barOneStyle = arrayBars[barOneIdx].style;
                     barOneStyle.height = `${newHeight}px`;
 
-                    if (soundOn) this.playSound(barOneStyle.height);
+                    //Play oscillator and/or modify frequency
+                    this.playSound(barOneStyle.height);
                     //console.log("Sound played");
 
                     //On last frame of animation
@@ -362,7 +367,17 @@ export default class SortingVisualizer extends React.Component {
                                 value="checkedA"
                                 inputProps={{ 'aria-label': 'Checkbox A' }}
                                 color={PRIMARY_COLOR}
-                                onChange={e => soundOn = !soundOn}
+                                onChange={e => {
+                                    soundOn = !soundOn;
+
+                                    //Mute/unmute oscillator when toggling checkbox
+                                    if (!soundOn) {
+                                        gainNode.gain.value = 0.000001;
+                                    }
+                                    else {
+                                        gainNode.gain.value = 0.03;
+                                    }
+                                }}
                             />
                         }
                         label="Enable Sound"
@@ -377,7 +392,7 @@ export default class SortingVisualizer extends React.Component {
                                 value="checkedA"
                                 inputProps={{ 'aria-label': 'Checkbox A' }}
                                 color={PRIMARY_COLOR}
-                                onChange={e => perfectArray = !perfectArray}
+                                onChange={e => {perfectArray = !perfectArray}}
                             />
                         }
                         label="Perfect Array"
