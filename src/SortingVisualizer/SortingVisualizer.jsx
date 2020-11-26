@@ -41,6 +41,8 @@ let NUMBER_OF_ARRAY_BARS = sizeSlider.initVal;
 let ANIMATION_SPEED_MS = speedSlider.initVal;
 
 let audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+let oscillator = audioCtx.createOscillator();
+let gainNode = audioCtx.createGain();
 
 let soundOn = false;
 let perfectArray = false;
@@ -128,22 +130,27 @@ export default class SortingVisualizer extends React.Component {
 
     //https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
     playSound(barHeight) {
-        var oscillator = audioCtx.createOscillator();
-        var gainNode = audioCtx.createGain();
-      
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-      
-        gainNode.gain.value = 0.2;
-        oscillator.frequency.value = parseInt(barHeight, 10) * 1.2 + 200;
-        oscillator.type = 'square';
-      
-        oscillator.start();
-      
-        setTimeout(
-          function() {
-            oscillator.stop();
-          }, ANIMATION_SPEED_MS);
+        //Start oscillator on first iteration
+        if (oscillator.context.state !== "running") {
+            console.log("Start Oscillator");
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            gainNode.gain.value = 0.03;
+            oscillator.frequency.value = (parseInt(barHeight, 10) * 2) + 110;
+            oscillator.type = 'triangle';
+
+            oscillator.start();
+        }
+        
+        oscillator.frequency.value = (parseInt(barHeight, 10) * 2) + 110;
+
+        //Kill oscillator
+        if (barHeight === -1)   {
+            setTimeout(() => {
+                oscillator.stop();
+            }, ANIMATION_SPEED_MS)
+        }
       }
 
     mergeSort() {
@@ -171,8 +178,6 @@ export default class SortingVisualizer extends React.Component {
                     barOneStyle.backgroundColor = color;
                     barTwoStyle.backgroundColor = color;
 
-                    if (soundOn) this.playSound(barOneStyle.height);
-
                     //console.log("AnimColorPlayed");
                 }, (i-pauseFrame) * ANIMATION_SPEED_MS));
 
@@ -182,16 +187,23 @@ export default class SortingVisualizer extends React.Component {
                     const [barOneIdx, newHeight] = animations[i];
                     const barOneStyle = arrayBars[barOneIdx].style;
                     barOneStyle.height = `${newHeight}px`;
-        
+
+                    if (soundOn) this.playSound(barOneStyle.height);
+                    //console.log("Sound played");
+
                     //On last frame of animation
                     if (i === animations.length -1){
                         animations = [];
                         maxFrames = 0;
                         running = false;
 
+                        //Kill oscillator
+                        this.playSound(-1);
+
                         document.querySelector(".play").disabled = false;
                         document.querySelector(".pause").disabled = true;
                         this.enableButtons();
+
                         console.log("Animation Finished");
                     }
 
