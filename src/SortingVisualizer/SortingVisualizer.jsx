@@ -45,6 +45,8 @@ let oscillator = audioCtx.createOscillator();
 let gainNode = audioCtx.createGain();
 //Default to mute
 gainNode.gain.value = 0.000001;
+let oscillatorRunning = false;
+oscillator.start();
 
 let soundOn = false;
 let perfectArray = false;
@@ -76,6 +78,9 @@ export default class SortingVisualizer extends React.Component {
         pause = false;
         running = false;
         this.enableButtons();
+
+        //Disconnect oscillator
+        this.playSound(-1);
 
         ANIMATION_SPEED_MS = document.querySelector(".speed").value;
 
@@ -135,24 +140,31 @@ export default class SortingVisualizer extends React.Component {
     //the oscillitor is muted. This allows starting/stopping it by making the checkbox
     //simply control volume
     playSound(barHeight) {
-        //Start oscillator on first iteration
-        if (oscillator.context.state !== "running") {
+        //Start (connect) oscillator on first iteration
+        if (oscillatorRunning === false) {
+            oscillatorRunning = true;
+
             console.log("Start Oscillator");
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
             oscillator.frequency.value = (parseInt(barHeight, 10) * 2) + 110;
             oscillator.type = 'triangle';
+        }
 
-            oscillator.start();
+        //For unmuting
+        if (barHeight === null){
+            oscillator.connect(gainNode);
         }
 
         oscillator.frequency.value = (parseInt(barHeight, 10) * 2) + 110;
 
-        //Kill oscillator
+        //Disconnect oscillator
         if (barHeight === -1)   {
+            console.log("Stop Oscillator");
+            oscillatorRunning = false;
             setTimeout(() => {
-                oscillator.stop();
+                oscillator.disconnect(gainNode);
             }, ANIMATION_SPEED_MS)
         }
       }
@@ -202,7 +214,7 @@ export default class SortingVisualizer extends React.Component {
                         maxFrames = 0;
                         running = false;
 
-                        //Kill oscillator
+                        //Disconnect oscillator
                         this.playSound(-1);
 
                         document.querySelector(".play").disabled = false;
@@ -235,6 +247,9 @@ export default class SortingVisualizer extends React.Component {
         document.querySelector(".pause").disabled = true;
         this.enableButtons();
 
+        //Mute oscillator
+        gainNode.gain.value = 0.000001;
+
         pause = true;
         pauseFrame = maxFrames - this.timeouts.length;
 
@@ -258,6 +273,9 @@ export default class SortingVisualizer extends React.Component {
         //Toggle buttons
         document.querySelector(".play").disabled = true;
         document.querySelector(".pause").disabled = false;
+
+        //Unmute oscillator if needed
+        if (soundOn) gainNode.gain.value = 0.03;
 
         //Act as a resume button if paused
         if (pause === true){
@@ -307,6 +325,8 @@ export default class SortingVisualizer extends React.Component {
         console.log(maxFrames);
         console.log("Frames Completed");
         console.log(maxFrames - this.timeouts.length);
+        console.log("gain");
+        console.log(gainNode.gain.value);
     }
 
     render() {
@@ -371,12 +391,18 @@ export default class SortingVisualizer extends React.Component {
                                     soundOn = !soundOn;
 
                                     //Mute/unmute oscillator when toggling checkbox
-                                    if (!soundOn) {
+                                    if (soundOn === false) {
                                         gainNode.gain.value = 0.000001;
                                     }
                                     else {
-                                        gainNode.gain.value = 0.03;
+                                        //Resume audioCtx, Chrome suspends since we start
+                                        //on page load before receiving user input
+                                        audioCtx.resume();
+
+                                        if (pause === false) gainNode.gain.value = 0.03;
                                     }
+
+                                    console.log(gainNode.gain.value);
                                 }}
                             />
                         }
