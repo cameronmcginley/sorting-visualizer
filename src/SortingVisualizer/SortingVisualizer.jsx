@@ -82,8 +82,6 @@ export default class SortingVisualizer extends React.Component {
         //Disconnect oscillator
         this.playSound(-1);
 
-        ANIMATION_SPEED_MS = document.querySelector(".speed").value;
-
         //Disable pause button when not running
         document.querySelector(".pause").disabled = true;
 
@@ -170,12 +168,6 @@ export default class SortingVisualizer extends React.Component {
       }
 
     mergeSort() {
-        this.disableButtons();
-        running = true;
-
-        //Get speed, can be updated while paused
-        ANIMATION_SPEED_MS = document.querySelector(".speed").value;
-
         //Don't get new animations if resuming
         if (animations.length === 0) animations = getMergeSortAnimations(this.state.array);
 
@@ -277,6 +269,8 @@ export default class SortingVisualizer extends React.Component {
         //Unmute oscillator if needed
         if (soundOn) gainNode.gain.value = 0.03;
 
+        this.disableButtons();
+
         //Act as a resume button if paused
         if (pause === true){
             console.log("Resuming on frame");
@@ -288,6 +282,8 @@ export default class SortingVisualizer extends React.Component {
         }
         //Start button, initiate selected sorting algorithm
         else if (running === false) {
+            running = true;
+            
              //Get the drop down menu
              let input = document.querySelector(".dropdown");
              if (input) console.log(input.text)
@@ -327,6 +323,10 @@ export default class SortingVisualizer extends React.Component {
         console.log(maxFrames - this.timeouts.length);
         console.log("gain");
         console.log(gainNode.gain.value);
+        console.log("size");
+        console.log(NUMBER_OF_ARRAY_BARS);
+        console.log("speed");
+        console.log(ANIMATION_SPEED_MS);
     }
 
     render() {
@@ -374,10 +374,11 @@ export default class SortingVisualizer extends React.Component {
 
                     {/* Array size */}
                     {/*<input className="lock size" type="range" min="10" max="500" defaultValue="250"></input>*/}
-                    <InputSlider></InputSlider>
+                    <SliderSize></SliderSize>
                     
                     {/* Animation speed */}
-                    <input className="lock speed" type="range" min="1" max="50" defaultValue="5"></input>
+                    {/*<input className="lock speed" type="range" min="1" max="50" defaultValue="5"></input>*/}
+                    <SliderSpeed></SliderSpeed>
 
                     {/* Enable Sound */}
                     <FormControlLabel
@@ -443,14 +444,13 @@ const useStyles = makeStyles({
     },
 });
 
-function InputSlider() {
+function SliderSize() {
     const classes = useStyles();
     const [value, setValue] = React.useState(sizeSlider.initVal);
 
     const handleSliderChange = (event, newValue) => {
         setValue(newValue);
         NUMBER_OF_ARRAY_BARS = newValue;
-        //SortingVisualizer.resetArray();
     };
 
     const handleInputChange = (event) => {
@@ -502,6 +502,74 @@ function InputSlider() {
                 step: 10,
                 min: sizeSlider.minVal,
                 max: sizeSlider.maxVal,
+                type: 'number',
+                'aria-labelledby': 'input-slider',
+                }}
+            />
+            </Grid>
+        </Grid>
+        </div>
+    );
+}
+
+function SliderSpeed() {
+    const classes = useStyles();
+    const [value, setValue] = React.useState(speedSlider.initVal);
+
+    const handleSliderChange = (event, newValue) => {
+        setValue(newValue);
+        ANIMATION_SPEED_MS = newValue;
+    };
+
+    const handleInputChange = (event) => {
+        let inputVal = Number(event.target.value);
+        setValue(event.target.value === '' ? '' : inputVal);
+
+        if (inputVal < speedSlider.minVal) {
+            inputVal = speedSlider.minVal;
+        } else if (inputVal > speedSlider.maxVal) {
+            inputVal = speedSlider.maxVal;
+        }
+        
+        ANIMATION_SPEED_MS = inputVal;
+    };
+
+    const handleBlur = () => {
+        if (value < speedSlider.minVal) {
+            setValue(speedSlider.minVal);
+        } else if (value > speedSlider.maxVal) {
+            setValue(speedSlider.maxVal);
+        }
+    };
+
+    return (
+        <div className={classes.root}>
+        <Typography id="input-slider" gutterBottom>
+            Speed (ms)
+        </Typography>
+        <Grid container spacing={2} alignItems="center">
+            <Grid item>
+            </Grid>
+            <Grid item xs>
+            <Slider
+                value={typeof value === 'number' ? value : 0}
+                onChange={handleSliderChange}
+                aria-labelledby="input-slider"
+                min={speedSlider.minVal}
+                max={speedSlider.maxVal}
+            />
+            </Grid>
+            <Grid item>
+            <Input
+                className={classes.input}
+                value={value}
+                margin="dense"
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                inputProps={{
+                step: 10,
+                min: speedSlider.minVal,
+                max: speedSlider.maxVal,
                 type: 'number',
                 'aria-labelledby': 'input-slider',
                 }}
