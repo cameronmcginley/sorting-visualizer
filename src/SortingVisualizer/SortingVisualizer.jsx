@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { Checkbox, Grid, Typography, Slider, Input, FormControlLabel } from '@material-ui/core';
 
 import { getMergeSortAnimations } from '../SortingAlgorithms/SortingAlgorithms.js';
@@ -283,7 +283,7 @@ export default class SortingVisualizer extends React.Component {
         //Start button, initiate selected sorting algorithm
         else if (running === false) {
             running = true;
-            
+
              //Get the drop down menu
              let input = document.querySelector(".dropdown");
              if (input) console.log(input.text)
@@ -384,10 +384,9 @@ export default class SortingVisualizer extends React.Component {
                     <FormControlLabel
                         value="top"
                         control={
-                            <Checkbox
+                            <CustomCheckbox
                                 value="checkedA"
                                 inputProps={{ 'aria-label': 'Checkbox A' }}
-                                color={PRIMARY_COLOR}
                                 onChange={e => {
                                     soundOn = !soundOn;
 
@@ -415,10 +414,9 @@ export default class SortingVisualizer extends React.Component {
                     <FormControlLabel
                         value="top"
                         control={
-                            <Checkbox
+                            <CustomCheckbox
                                 value="checkedA"
                                 inputProps={{ 'aria-label': 'Checkbox A' }}
-                                color={PRIMARY_COLOR}
                                 onChange={e => {perfectArray = !perfectArray}}
                             />
                         }
@@ -579,3 +577,14 @@ function SliderSpeed() {
         </div>
     );
 }
+
+const styles={
+    root:{
+        '&$checked':{
+        color: PRIMARY_COLOR,
+        }
+    },
+    checked:{}
+}
+
+const CustomCheckbox = withStyles(styles)(Checkbox);
