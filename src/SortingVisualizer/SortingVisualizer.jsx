@@ -40,16 +40,23 @@ let NUMBER_OF_ARRAY_BARS = sizeSlider.initVal;
 // Change this value for the speed of the animations.
 let ANIMATION_SPEED_MS = speedSlider.initVal;
 
-let audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-let oscillator = audioCtx.createOscillator();
-let gainNode = audioCtx.createGain();
-//Default to mute
-gainNode.gain.value = 0.000001;
-let oscillatorRunning = false;
-oscillator.start();
+// let audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+// let oscillator = audioCtx.createOscillator();
+// let gainNode = audioCtx.createGain();
+// //Default to mute
+// gainNode.gain.value = 0.000001;
+// let oscillatorRunning = false;
+// oscillator.start();
+
+let audioCtx;
+let oscillator;
+let gainNode;
+let oscillatorRunning;
 
 let soundOn = false;
 let perfectArray = false;
+
+let oscillatorInitialized = false;
 
 export default class SortingVisualizer extends React.Component {
     constructor(props) {
@@ -80,7 +87,7 @@ export default class SortingVisualizer extends React.Component {
         this.enableButtons();
 
         //Disconnect oscillator
-        this.playSound(-1);
+        if (oscillatorRunning) this.playSound(-1);
 
         //Disable pause button when not running
         document.querySelector(".pause").disabled = true;
@@ -138,34 +145,54 @@ export default class SortingVisualizer extends React.Component {
     //the oscillitor is muted. This allows starting/stopping it by making the checkbox
     //simply control volume
     playSound(barHeight) {
-        //Start (connect) oscillator on first iteration
-        if (oscillatorRunning === false) {
-            oscillatorRunning = true;
+        if (oscillatorInitialized) {
+            //Start (connect) oscillator on first iteration
+            if (oscillatorRunning === false) {
+                oscillatorRunning = true;
 
-            console.log("Start Oscillator");
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+                console.log("Start Oscillator");
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.type = 'triangle';
+            }
 
             oscillator.frequency.value = (parseInt(barHeight, 10) * 2) + 110;
-            oscillator.type = 'triangle';
         }
+    }
 
-        //For unmuting
-        if (barHeight === null){
-            oscillator.connect(gainNode);
-        }
+    muteSound() {
+        gainNode.gain.value = 0.000001;
+    }
 
-        oscillator.frequency.value = (parseInt(barHeight, 10) * 2) + 110;
+    unmuteSound() {
+        gainNode.gain.value = 0.03;
+    }
 
-        //Disconnect oscillator
-        if (barHeight === -1)   {
-            console.log("Stop Oscillator");
-            oscillatorRunning = false;
-            setTimeout(() => {
-                oscillator.disconnect(gainNode);
-            }, ANIMATION_SPEED_MS)
-        }
-      }
+    //Disconnect oscillator
+    endSound() {
+        console.log("Stop Oscillator");
+        oscillatorRunning = false;
+        setTimeout(() => {
+            oscillator.disconnect(gainNode);
+            gainNode.disconnect(audioCtx.destination);
+        }, ANIMATION_SPEED_MS)
+    }
+
+    //First time oscillator set up
+    initializeSound() {
+        oscillatorInitialized = true;
+
+        audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+        oscillator = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+
+        oscillatorRunning = false;
+        oscillator.start();
+
+        console.log("Sound initialized");
+    }
 
     mergeSort() {
         //Don't get new animations if resuming
@@ -207,7 +234,7 @@ export default class SortingVisualizer extends React.Component {
                         running = false;
 
                         //Disconnect oscillator
-                        this.playSound(-1);
+                        this.endSound();
 
                         document.querySelector(".play").disabled = false;
                         document.querySelector(".pause").disabled = true;
@@ -267,7 +294,7 @@ export default class SortingVisualizer extends React.Component {
         document.querySelector(".pause").disabled = false;
 
         //Unmute oscillator if needed
-        if (soundOn) gainNode.gain.value = 0.03;
+        if (soundOn) this.unmuteSound();
 
         this.disableButtons();
 
@@ -392,14 +419,13 @@ export default class SortingVisualizer extends React.Component {
 
                                     //Mute/unmute oscillator when toggling checkbox
                                     if (soundOn === false) {
-                                        gainNode.gain.value = 0.000001;
+                                        this.muteSound();
                                     }
                                     else {
-                                        //Resume audioCtx, Chrome suspends since we start
-                                        //on page load before receiving user input
-                                        audioCtx.resume();
+                                        //First time set up if needed
+                                        if (!oscillatorInitialized) this.initializeSound();
 
-                                        if (pause === false) gainNode.gain.value = 0.03;
+                                        if (pause === false) this.unmuteSound();
                                     }
 
                                     console.log(gainNode.gain.value);
