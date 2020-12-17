@@ -172,12 +172,15 @@ export default class SortingVisualizer extends React.Component {
 
     //Disconnect oscillator
     endSound() {
-        console.log("Stop Oscillator");
-        oscillatorRunning = false;
-        setTimeout(() => {
-            oscillator.disconnect(gainNode);
-            gainNode.disconnect(audioCtx.destination);
-        }, ANIMATION_SPEED_MS)
+        if (soundOn){
+            console.log("Stop Oscillator");
+            oscillatorRunning = false;
+            setTimeout(() => {
+                oscillator.disconnect(gainNode);
+                gainNode.disconnect(audioCtx.destination);
+            }, ANIMATION_SPEED_MS)
+            soundOn = !soundOn;
+        }
     }
 
     //First time oscillator set up
