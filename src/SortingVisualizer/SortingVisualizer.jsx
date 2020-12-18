@@ -179,7 +179,6 @@ export default class SortingVisualizer extends React.Component {
                 oscillator.disconnect(gainNode);
                 gainNode.disconnect(audioCtx.destination);
             }, ANIMATION_SPEED_MS)
-            soundOn = !soundOn;
         }
     }
 
