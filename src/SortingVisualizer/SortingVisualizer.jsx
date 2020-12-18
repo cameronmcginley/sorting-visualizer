@@ -163,11 +163,11 @@ export default class SortingVisualizer extends React.Component {
     }
 
     muteSound() {
-        gainNode.gain.value = 0.000001;
+        if (oscillatorInitialized) gainNode.gain.value = 0.000001;
     }
 
     unmuteSound() {
-        gainNode.gain.value = 0.03;
+        if (oscillatorInitialized) gainNode.gain.value = 0.03;
     }
 
     //Disconnect oscillator
@@ -270,7 +270,7 @@ export default class SortingVisualizer extends React.Component {
         this.enableButtons();
 
         //Mute oscillator
-        gainNode.gain.value = 0.000001;
+        this.muteSound();
 
         pause = true;
         pauseFrame = maxFrames - this.timeouts.length;
