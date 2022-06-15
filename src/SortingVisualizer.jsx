@@ -14,9 +14,12 @@ export default function SortingVisualizer(props) {
     // Generate full array of bars, then replace the bars state with it
 
     let generated_bars = []
-
+    let animQueue = [];
+    let animQueuePaused = [];
+    let animPlaying = [];
 
     const swap = (i, j) => {
+        // Must use setState to trigger re-render
         setBars(bars => {
             let data = [...bars];
             let temp = data[i];
@@ -25,6 +28,30 @@ export default function SortingVisualizer(props) {
 
             return data ;
         })
+    }
+    const [animationQueue, setAnimationQueue] = React.useState([])
+    const [animationFrames, setAnimationFrames] = React.useState([])
+
+    const playAnimation = () => {
+        bubbleSort(bars)
+
+        // Queue up the frames in animationFrames
+        for (let idx = 0; idx < animationFrames.length; idx++) {
+            animationQueue.push(setTimeout((i, j) => {
+                swap(i, j)
+            }, idx*delay, animationFrames[idx].i, animationFrames[idx].j))
+        }
+
+        // Clear frames after they've all been queued
+        // On pause-play, frames will be generated fresh
+        animationFrames.length = 0;
+    }
+
+    const pauseAnim = () => {
+        // Clear the queued timeout swap funcs
+        for (let i = 0; i <animationQueue.length; i++) {
+            clearTimeout(animationQueue[i])
+        }
     }
 
     const bubbleSort = (bars_state) => {
@@ -39,16 +66,14 @@ export default function SortingVisualizer(props) {
                 bars_temp[j] = bars_temp[j+1];
                 bars_temp[j+1] = temp;
 
-                // Increase the delay to queue up swaps
-                curr_timer += delay;
-                
-                // Must pass index to func, won't update otherwise
-                setTimeout((j) => {
-                    swap(j, j+1)
-                }, curr_timer, j)
+                animationFrames.push({
+                    i: j,
+                    j: j+1,
+                })
               }
             }
         }
+        // console.log(animationQueue)
     }
 
 
@@ -96,11 +121,12 @@ export default function SortingVisualizer(props) {
                         generateArray();
                     }}
                 >
-                    Click me
+                    Generate
                 </Button>
                 <Button
                     onClick={() => {
-                        bubbleSort(bars)
+                        // bubbleSort(bars)
+                        playAnimation()
                         // swap(5,7);
                         // swap(3,9);
                         // swap(3,34);
@@ -110,7 +136,14 @@ export default function SortingVisualizer(props) {
                         // swap(3,5);
                     }}
                 >
-                    Swap
+                    Play
+                </Button>
+                <Button
+                    onClick={() => {
+                        pauseAnim()
+                    }}
+                >
+                    Pause
                 </Button>
             </Paper>
         </div>
