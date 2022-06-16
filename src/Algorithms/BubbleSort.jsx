@@ -5,6 +5,13 @@ const getBubbleSortAnimations = (bars_state) => {
 
     for(var i = 0; i < bars.length; i++){
         for(var j = 0; j < ( bars.length - i -1 ); j++){
+            // Push frame for coloring
+            animationFrames.push({
+                type: "Highlight",
+                indexes: [j, j+1]
+            })
+            console.log("pushed")
+
             if(bars[j].height > bars[j+1].height){
                 let temp = bars[j];
                 bars[j] = bars[j+1];

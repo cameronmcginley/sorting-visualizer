@@ -16,12 +16,12 @@ export default function SortingVisualizer(props) {
 
     // This is max height - 1
     const MAX_HEIGHT = 99;
-    const MAX_BARS = 500;
+    const MAX_BARS = 100;
     const MAX_DELAY = 500;
 
 
     const [isPlaying, setIsPlaying] = React.useState(false);
-    const [isPaused, setIsPaused] = React.useState(true);
+    let [isPaused, setIsPaused] = React.useState(true);
 
     const [doPerfectArray, setDoPerfectArray] = React.useState(false);
 
@@ -39,11 +39,17 @@ export default function SortingVisualizer(props) {
         // Don't regen frames after a pause-unpause
         if (animationFrames.length == 0) {
             // Get frames for immediate use
-            animationFrames = getMergeSortAnimations(bars)
-            // animationFrames = getBubbleSortAnimations(bars)
+            // animationFrames = getMergeSortAnimations(bars)
+            animationFrames = getBubbleSortAnimations(bars)
+            // Push a frame indicating end of animation
+            animationFrames.push({
+                type: "End",
+            })
             // Push to state so we can see frames from other funcs
             setAnimationFrames(animationFrames)
         }
+
+        
 
         // Append hasPlayed flag to frames
         for (let i = 0; i < animationFrames.length; i++) {
@@ -76,8 +82,8 @@ export default function SortingVisualizer(props) {
 
                 frameNum++;
 
-                // Unhighlight
-                // Consolidate into other
+                // Unhighlight, don't increment frameNum, want it to turn
+                // off right after swap/done comparing
                 (function (frame, indexes) {
                     animationQueue.push(setTimeout(function(frame, arr) { 
                         frame.hasPlayed = true;
@@ -91,8 +97,6 @@ export default function SortingVisualizer(props) {
                     }, delay*frameNum, frame, indexes));
                 })(animationFrames[idx], animationFrames[idx].indexes.slice());
 
-                frameNum++;
-
                 continue;
             }
 
@@ -104,6 +108,10 @@ export default function SortingVisualizer(props) {
                         let temp = data[frame.i];
                         data[frame.i] = data[frame.j];
                         data[frame.j] = temp;
+
+                        // Put color back
+                        // data[frame.i].color = "blue" 
+                        // data[frame.j].color = "blue" 
                         return data ;
                     })
                 }, delay*frameNum, animationFrames[idx]))
@@ -124,6 +132,16 @@ export default function SortingVisualizer(props) {
 
                 frameNum++;
             }
+
+            if (animationFrames[idx].type == "End") {
+                // Replace value at index i with val
+                animationQueue.push(setTimeout((frame) => {
+                    frame.hasPlayed = true;
+                    pauseAnim()
+                }, delay*(frameNum-1), animationFrames[idx]))
+
+                // frameNum++;
+            }
         }
     }
 
@@ -137,14 +155,11 @@ export default function SortingVisualizer(props) {
         }
 
         // Clean out already played frames
-        console.log(animationFrames)
         let i = 0;
         while (animationFrames[i] && animationFrames[i].hasPlayed) {
             animationFrames.shift();
-            console.log("Shifted")
+            // console.log("Shifted")
         }
-        
-        console.log(animationFrames)
     }
 
     // Fisher yates algorithm
@@ -192,7 +207,7 @@ export default function SortingVisualizer(props) {
     // Wait for flag to change before regenerating array
     useEffect(() => {
         generateArray()
-    }, [doPerfectArray])
+    }, [doPerfectArray, barCount])
 
     return (<>
         <div className="visualizer-container">
@@ -220,6 +235,7 @@ export default function SortingVisualizer(props) {
                     onClick={() => {generateArray()}}
                     // disabled={isPlaying}
                     variant="outlined"
+                    disabled={isPlaying}
                 >
                     Generate
                 </Button>
@@ -256,10 +272,10 @@ export default function SortingVisualizer(props) {
                                     return
                                 }
                                 setBarCount(e.target.value)
-                                generateArray()
                             }}
                             max={MAX_BARS}
                             min={5}
+                            disabled={isPlaying}
                         />
                     </Grid>
                     <Grid item>
@@ -268,7 +284,6 @@ export default function SortingVisualizer(props) {
                             size="small"
                             onChange={(e) => {
                                 setBarCount(e.target.value)
-                                generateArray()
                             }}
                             // onBlur={handleBlur}
                             inputProps={{
@@ -277,6 +292,7 @@ export default function SortingVisualizer(props) {
                                 max: MAX_BARS,
                                 type: 'number',
                             }}
+                            disabled={isPlaying}
                         />
                     </Grid>
                 </Grid>
@@ -298,6 +314,7 @@ export default function SortingVisualizer(props) {
                             }}
                             max={MAX_DELAY}
                             min={1}
+                            disabled={isPlaying}
                         />
                     </Grid>
                     <Grid item>
@@ -314,10 +331,12 @@ export default function SortingVisualizer(props) {
                                 max: MAX_DELAY,
                                 type: 'number',
                             }}
+                            disabled={isPlaying}
                         />
                     </Grid>
                 </Grid>
 
+                {/* Uniform/perfect array */}
                 <FormGroup>
                     <FormControlLabel 
                         control={
@@ -327,6 +346,7 @@ export default function SortingVisualizer(props) {
                                     // Use above useEffect to regen array on state change
                                     setDoPerfectArray(!doPerfectArray)
                                 }}
+                                disabled={isPlaying}
                             />
                         }
                         label="Uniform Array" 
