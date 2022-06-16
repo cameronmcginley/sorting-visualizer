@@ -23,23 +23,25 @@ export default function SortingVisualizer(props) {
 
 
 
-
-    // const swap = (i, j) => {
-    //     // Must use setState to trigger re-render
-    //     setBars(bars => {
-    //         let data = [...bars];
-    //         let temp = data[i];
-    //         data[i] = data[j];
-    //         data[j] = temp;
-
-    //         return data ;
-    //     })
-    // }
-
     const playAnimation = () => {
+        // Do nothing if already playing
+        // if (animationQueue.length > 0) { return }
+
         // bubbleSort(bars)
         // animationFrames = BubbleSort(bars)
-        animationFrames = getMergeSortAnimations(bars)
+        
+        // Don't regen frames after a pause-unpause
+        if (animationFrames.length == 0) {
+            // Get frames for immediate use
+            animationFrames = getMergeSortAnimations(bars)
+            // Push to state so we can see frames from other funcs
+            setAnimationFrames(animationFrames)
+        }
+
+        // Append hasPlayed flag to frames
+        for (let i = 0; i < animationFrames.length; i++) {
+            animationFrames[i].hasPlayed = false;
+        }
 
         // Animation frame types: "Swap", "Replace", "Highlight"
         // Manually track number of frames queued
@@ -52,8 +54,9 @@ export default function SortingVisualizer(props) {
                 // index in the object
                 // Passing array to timeout was odd
                 // https://stackoverflow.com/questions/30390993/passing-an-array-as-function-argument-to-settimeout-acts-not-like-passing-a-vari
-                (function (indexes) {
-                    animationQueue.push(setTimeout(function(arr) { 
+                (function (frame, indexes) {
+                    animationQueue.push(setTimeout(function(frame, arr) { 
+                        frame.hasPlayed = true;
                         for (let i = 0; i < indexes.length; i++) {
                             setBars(bars => {
                                 let data = [...bars];
@@ -61,15 +64,16 @@ export default function SortingVisualizer(props) {
                                 return data;
                             })
                         }
-                    }, delay*frameNum, indexes));
-                })(animationFrames[idx].indexes.slice());
+                    }, delay*frameNum, frame, indexes));
+                })(animationFrames[idx], animationFrames[idx].indexes.slice());
 
                 frameNum++;
 
                 // Unhighlight
                 // Consolidate into other
-                (function (indexes) {
-                    animationQueue.push(setTimeout(function(arr) { 
+                (function (frame, indexes) {
+                    animationQueue.push(setTimeout(function(frame, arr) { 
+                        frame.hasPlayed = true;
                         for (let i = 0; i < indexes.length; i++) {
                             setBars(bars => {
                                 let data = [...bars];
@@ -77,8 +81,8 @@ export default function SortingVisualizer(props) {
                                 return data;
                             })
                         }
-                    }, delay*frameNum, indexes));
-                })(animationFrames[idx].indexes.slice());
+                    }, delay*frameNum, frame, indexes));
+                })(animationFrames[idx], animationFrames[idx].indexes.slice());
 
                 frameNum++;
 
@@ -86,29 +90,30 @@ export default function SortingVisualizer(props) {
             }
 
             if (animationFrames[idx].type == "Swap") {
-                animationQueue.push(setTimeout((i, j) => {
-                    console.log("Swap")
+                animationQueue.push(setTimeout((frame) => {
+                    frame.hasPlayed = true;
                     setBars(bars => {
                         let data = [...bars];
-                        let temp = data[i];
-                        data[i] = data[j];
-                        data[j] = temp;
+                        let temp = data[frame.i];
+                        data[frame.i] = data[frame.j];
+                        data[frame.j] = temp;
                         return data ;
                     })
-                }, delay*frameNum, animationFrames[idx].i, animationFrames[idx].j))
+                }, delay*frameNum, animationFrames[idx]))
 
                 frameNum++;
             }
 
             if (animationFrames[idx].type == "Replace") {
                 // Replace value at index i with val
-                animationQueue.push(setTimeout((i, val) => {
+                animationQueue.push(setTimeout((frame) => {
+                    frame.hasPlayed = true;
                     setBars(bars => {
                         let data = [...bars];
-                        data[i].height = val;
+                        data[frame.i].height = frame.val;
                         return data ;
                     })
-                }, delay*frameNum, animationFrames[idx].i, animationFrames[idx].val))
+                }, delay*frameNum, animationFrames[idx]))
 
                 frameNum++;
             }
@@ -121,7 +126,7 @@ export default function SortingVisualizer(props) {
 
         // // Clear frames after they've all been queued
         // // On pause-unpause, frames will be generated fresh
-        animationFrames.length = 0;
+        // animationFrames.length = 0;
     }
 
     const pauseAnim = () => {
@@ -129,11 +134,22 @@ export default function SortingVisualizer(props) {
         for (let i = 0; i < animationQueue.length; i++) {
             clearTimeout(animationQueue[i])
         }
+
+        // Clean out already played frames
+        console.log(animationFrames)
+        let i = 0;
+        while (animationFrames[i] && animationFrames[i].hasPlayed) {
+            animationFrames.shift();
+            console.log("Shifted")
+        }
+        
+        console.log(animationFrames)
     }
 
     const generateArray = () => {
         // Dequeue animations if they're still playing
         pauseAnim()
+        setAnimationFrames([])
 
         // Generate n bars, add to bars state array
         let generated_bars = []
