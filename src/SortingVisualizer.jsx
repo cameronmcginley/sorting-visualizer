@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { Paper, Box, Button, Link } from "@mui/material";
+import { Paper, Box, Button, Link, Input, Slider, Grid, Checkbox, FormGroup, FormControlLabel } from "@mui/material";
 import getBubbleSortAnimations from './Algorithms/BubbleSort';
 import getMergeSortAnimations from './Algorithms/MergeSort';
 
 export default function SortingVisualizer(props) {
     const [barCount, setBarCount] = React.useState(100);
     const [bars, setBars] = React.useState([]);
-    const [delay, setDelay] = React.useState(10);
+    const [delay, setDelay] = React.useState(1);
 
     // States used to prevent re-writing variables in this component
     // on renders.
@@ -16,25 +16,31 @@ export default function SortingVisualizer(props) {
 
     // This is max height - 1
     const MAX_HEIGHT = 99;
+    const MAX_BARS = 500;
+    const MAX_DELAY = 500;
 
 
+    const [isPlaying, setIsPlaying] = React.useState(false);
+    const [isPaused, setIsPaused] = React.useState(true);
+
+    const [doPerfectArray, setDoPerfectArray] = React.useState(false);
 
 
-
+    // Generate new array on load
+    useEffect(() => {
+        generateArray();
+    }, [])
 
 
     const playAnimation = () => {
-        // Do nothing if already playing
-        // if (animationQueue.length > 0) { return }
+        setIsPlaying(true)
+        setIsPaused(false)
 
-        // bubbleSort(bars)
-        // animationFrames = getBubbleSortAnimations(bars)
-        
         // Don't regen frames after a pause-unpause
         if (animationFrames.length == 0) {
             // Get frames for immediate use
-            // animationFrames = getMergeSortAnimations(bars)
-            animationFrames = getBubbleSortAnimations(bars)
+            animationFrames = getMergeSortAnimations(bars)
+            // animationFrames = getBubbleSortAnimations(bars)
             // Push to state so we can see frames from other funcs
             setAnimationFrames(animationFrames)
         }
@@ -119,18 +125,12 @@ export default function SortingVisualizer(props) {
                 frameNum++;
             }
         }
-
-
-        // Need to overhaul pausing
-        // Only delete frames already played
-        // Resume from where left off, don't regen from start
-
-        // // Clear frames after they've all been queued
-        // // On pause-unpause, frames will be generated fresh
-        // animationFrames.length = 0;
     }
 
     const pauseAnim = () => {
+        setIsPaused(true)
+        setIsPlaying(false)
+
         // Clear the queued timeout swap funcs
         for (let i = 0; i < animationQueue.length; i++) {
             clearTimeout(animationQueue[i])
@@ -147,6 +147,16 @@ export default function SortingVisualizer(props) {
         console.log(animationFrames)
     }
 
+    // Fisher yates algorithm
+    const shuffle = (array) => {
+        let i = array.length;
+        while (i--) {
+          const ri = Math.floor(Math.random() * i);
+          [array[i], array[ri]] = [array[ri], array[i]];
+        }
+        return array;
+      }
+
     const generateArray = () => {
         // Dequeue animations if they're still playing
         pauseAnim()
@@ -154,79 +164,35 @@ export default function SortingVisualizer(props) {
 
         // Generate n bars, add to bars state array
         let generated_bars = []
-        for (let i = 0; i < barCount; i++) {
-            generated_bars.push({
-                height: Math.floor(Math.random() * MAX_HEIGHT) + 1,
-                color: "blue",   
-            })
+        if (doPerfectArray) {
+            // Generate perfectly spaced in height bars
+            for (let i = 1; i <= barCount; i++) {
+                generated_bars.push({
+                    height: i * MAX_HEIGHT/barCount,
+                    color: "blue",   
+                })
+            }
+            // Shuffle them
+            generated_bars = shuffle(generated_bars)
         }
+        else {
+            for (let i = 0; i < barCount; i++) {
+                generated_bars.push({
+                    height: Math.floor(Math.random() * MAX_HEIGHT) + 1,
+                    color: "blue",   
+                })
+            }
+        }
+
 
         setBars(generated_bars)
     }
 
 
-
-
-
-
-
-
-
-
-
-
-    // const swap = (i, j) => {
-    //     // Must use setState to trigger re-render
-    //     setBars(bars => {
-    //         let data = [...bars];
-    //         let temp = data[i];
-    //         data[i] = data[j];
-    //         data[j] = temp;
-
-    //         return data ;
-    //     })
-    // }
-
-    // const playAnimation = () => {
-    //     // bubbleSort(bars)
-    //     // animationFrames = BubbleSort(bars)
-    //     animationFrames = getMergeSortAnimations(bars)
-    //     console.log(animationFrames)
-
-    //     // Queue up the frames in animationFrames
-    //     for (let idx = 0; idx < animationFrames.length; idx++) {
-    //         animationQueue.push(setTimeout((i, j) => {
-    //             swap(i, j)
-    //         }, idx*delay, animationFrames[idx].i, animationFrames[idx].j))
-    //     }
-
-    //     // Clear frames after they've all been queued
-    //     // On pause-unpause, frames will be generated fresh
-    //     animationFrames.length = 0;
-    // }
-
-    // const pauseAnim = () => {
-    //     // Clear the queued timeout swap funcs
-    //     for (let i = 0; i <animationQueue.length; i++) {
-    //         clearTimeout(animationQueue[i])
-    //     }
-    // }
-
-    // const generateArray = () => {
-    //     // Dequeue animations if they're still playing
-    //     pauseAnim()
-
-    //     // Generate n bars, add to bars state array
-    //     let generated_bars = []
-    //     for (let i = 0; i < barCount; i++) {
-    //         generated_bars.push({
-    //             height: Math.floor(Math.random() * MAX_HEIGHT) + 1,
-    //             color: "blue",   
-    //         })
-    //     }
-
-    //     setBars(generated_bars)
-    // }
+    // Wait for flag to change before regenerating array
+    useEffect(() => {
+        generateArray()
+    }, [doPerfectArray])
 
     return (<>
         <div className="visualizer-container">
@@ -249,35 +215,123 @@ export default function SortingVisualizer(props) {
 
             {/* Settings */}
             <Paper variant="outlined" className='visualizer-settings'>
+                {/* Generate array */}
                 <Button
-                    onClick={() => {
-                        generateArray();
-                    }}
+                    onClick={() => {generateArray()}}
+                    // disabled={isPlaying}
+                    variant="outlined"
                 >
                     Generate
                 </Button>
+
+                {/* Play animation */}
                 <Button
-                    onClick={() => {
-                        // bubbleSort(bars)
-                        playAnimation()
-                        // swap(5,7);
-                        // swap(3,9);
-                        // swap(3,34);
-                        // swap(1,73);
-                        // swap(2,57);
-                        // swap(53,7);
-                        // swap(3,5);
-                    }}
+                    onClick={() => {playAnimation()}}
+                    disabled={isPlaying}
+                    variant="outlined"
                 >
                     Play
                 </Button>
+
+                {/* Pause animation */}
                 <Button
-                    onClick={() => {
-                        pauseAnim()
-                    }}
+                    onClick={() => {pauseAnim()}}
+                    disabled={isPaused}
+                    variant="outlined"
                 >
                     Pause
                 </Button>
+                
+                {/* Bar count slider/input */}
+                <Grid container spacing={2} alignItems="center">
+                    {/* <Grid item>
+                        <VolumeUp />
+                    </Grid> */}
+                    <Grid item xs>
+                        <Slider
+                            value={barCount}
+                            onChange={(e) => {
+                                // Don't keep updating if sliding past MAX_BARS
+                                if (e.target.value == MAX_BARS && barCount == MAX_BARS) {
+                                    return
+                                }
+                                setBarCount(e.target.value)
+                                generateArray()
+                            }}
+                            max={MAX_BARS}
+                            min={5}
+                        />
+                    </Grid>
+                    <Grid item>
+                        <Input
+                            value={barCount}
+                            size="small"
+                            onChange={(e) => {
+                                setBarCount(e.target.value)
+                                generateArray()
+                            }}
+                            // onBlur={handleBlur}
+                            inputProps={{
+                                step: 10,
+                                min: 5,
+                                max: MAX_BARS,
+                                type: 'number',
+                            }}
+                        />
+                    </Grid>
+                </Grid>
+
+                {/* Delay slider/input */}
+                <Grid container spacing={2} alignItems="center">
+                    {/* <Grid item>
+                        <VolumeUp />
+                    </Grid> */}
+                    <Grid item xs>
+                        <Slider
+                            value={delay}
+                            onChange={(e) => {
+                                // Don't keep updating if sliding past MAX_BARS
+                                if (e.target.value == MAX_DELAY && delay == MAX_DELAY) {
+                                    return
+                                }
+                                setDelay(e.target.value)
+                            }}
+                            max={MAX_DELAY}
+                            min={1}
+                        />
+                    </Grid>
+                    <Grid item>
+                        <Input
+                            value={delay}
+                            size="small"
+                            onChange={(e) => {
+                                setDelay(e.target.value)
+                            }}
+                            // onBlur={handleBlur}
+                            inputProps={{
+                                step: 1,
+                                min: 1,
+                                max: MAX_DELAY,
+                                type: 'number',
+                            }}
+                        />
+                    </Grid>
+                </Grid>
+
+                <FormGroup>
+                    <FormControlLabel 
+                        control={
+                            <Checkbox
+                                checked={doPerfectArray}
+                                onChange={async () => {
+                                    // Use above useEffect to regen array on state change
+                                    setDoPerfectArray(!doPerfectArray)
+                                }}
+                            />
+                        }
+                        label="Uniform Array" 
+                    />
+                </FormGroup>
             </Paper>
         </div>
     </>)
