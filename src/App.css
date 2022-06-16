@@ -79,8 +79,6 @@ body, html {
 
   display:flex;
   flex-direction: row;
-}
-
-.bar {
-  width:4px;
+  justify-content: center;
+  align-items: flex-end;
 }

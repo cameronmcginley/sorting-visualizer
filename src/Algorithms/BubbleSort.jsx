@@ -10,7 +10,6 @@ const getBubbleSortAnimations = (bars_state) => {
                 type: "Highlight",
                 indexes: [j, j+1]
             })
-            console.log("pushed")
 
             if(bars[j].height > bars[j+1].height){
                 let temp = bars[j];

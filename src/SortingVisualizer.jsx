@@ -18,6 +18,8 @@ export default function SortingVisualizer(props) {
     const MAX_HEIGHT = 99;
     const MAX_BARS = 100;
     const MAX_DELAY = 500;
+    const PRIMARY_COLOR = "blue"
+    const HIGHLIGHT_COLOR = "red"
 
 
     const [isPlaying, setIsPlaying] = React.useState(false);
@@ -49,8 +51,6 @@ export default function SortingVisualizer(props) {
             setAnimationFrames(animationFrames)
         }
 
-        
-
         // Append hasPlayed flag to frames
         for (let i = 0; i < animationFrames.length; i++) {
             animationFrames[i].hasPlayed = false;
@@ -73,7 +73,7 @@ export default function SortingVisualizer(props) {
                         for (let i = 0; i < indexes.length; i++) {
                             setBars(bars => {
                                 let data = [...bars];
-                                data[arr[i]].color = "red"
+                                data[arr[i]].color = HIGHLIGHT_COLOR
                                 return data;
                             })
                         }
@@ -90,7 +90,7 @@ export default function SortingVisualizer(props) {
                         for (let i = 0; i < indexes.length; i++) {
                             setBars(bars => {
                                 let data = [...bars];
-                                data[arr[i]].color = "blue"
+                                data[arr[i]].color = PRIMARY_COLOR
                                 return data;
                             })
                         }
@@ -149,6 +149,15 @@ export default function SortingVisualizer(props) {
         setIsPaused(true)
         setIsPlaying(false)
 
+        // Clear any leftover colors from animations
+        for (let i = 0; i < bars.length; i++) {
+            setBars(bars => {
+                let data = [...bars];
+                data[i].color = PRIMARY_COLOR
+                return data ;
+            })
+        }
+
         // Clear the queued timeout swap funcs
         for (let i = 0; i < animationQueue.length; i++) {
             clearTimeout(animationQueue[i])
@@ -184,7 +193,7 @@ export default function SortingVisualizer(props) {
             for (let i = 1; i <= barCount; i++) {
                 generated_bars.push({
                     height: i * MAX_HEIGHT/barCount,
-                    color: "blue",   
+                    color: PRIMARY_COLOR,   
                 })
             }
             // Shuffle them
@@ -194,7 +203,7 @@ export default function SortingVisualizer(props) {
             for (let i = 0; i < barCount; i++) {
                 generated_bars.push({
                     height: Math.floor(Math.random() * MAX_HEIGHT) + 1,
-                    color: "blue",   
+                    color: PRIMARY_COLOR,   
                 })
             }
         }
@@ -221,7 +230,9 @@ export default function SortingVisualizer(props) {
                             key={i}
                             style={{
                                 backgroundColor: val.color,
-                                height: `${val.height}px`,
+                                // height: `${val.height}px`,
+                                height: `${val.height}%`,
+                                width: `${100/barCount}%`,
                             }}
                         />
                     ))}
