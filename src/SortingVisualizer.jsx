@@ -1,84 +1,142 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import { Paper, Box, Button, Link } from "@mui/material";
+import BubbleSort from './Algorithms/BubbleSort';
+import getMergeSortAnimations from './Algorithms/MergeSort';
 
 export default function SortingVisualizer(props) {
     const [barCount, setBarCount] = React.useState(100);
     const [bars, setBars] = React.useState([]);
-    const [delay, setDelay] = React.useState(1);
+    const [delay, setDelay] = React.useState(10);
+
+    // States used to prevent re-writing variables in this component
+    // on renders.
+    const [animationQueue, setAnimationQueue] = React.useState([])
+    let [animationFrames, setAnimationFrames] = React.useState([])
 
     // This is max height - 1
     const MAX_HEIGHT = 99;
-    let bars_updating= false;
 
-    // Generate full array of bars, then replace the bars state with it
 
-    let generated_bars = []
-    let animQueue = [];
-    let animQueuePaused = [];
-    let animPlaying = [];
 
-    const swap = (i, j) => {
-        // Must use setState to trigger re-render
-        setBars(bars => {
-            let data = [...bars];
-            let temp = data[i];
-            data[i] = data[j];
-            data[j] = temp;
 
-            return data ;
-        })
-    }
-    const [animationQueue, setAnimationQueue] = React.useState([])
-    const [animationFrames, setAnimationFrames] = React.useState([])
+
+
+
+
+    // const swap = (i, j) => {
+    //     // Must use setState to trigger re-render
+    //     setBars(bars => {
+    //         let data = [...bars];
+    //         let temp = data[i];
+    //         data[i] = data[j];
+    //         data[j] = temp;
+
+    //         return data ;
+    //     })
+    // }
 
     const playAnimation = () => {
-        bubbleSort(bars)
+        // bubbleSort(bars)
+        // animationFrames = BubbleSort(bars)
+        animationFrames = getMergeSortAnimations(bars)
 
-        // Queue up the frames in animationFrames
+        // Animation frame types: "Swap", "Replace", "Highlight"
+        // Manually track number of frames queued
+        // Since one frame can result in multiple animations
+        let frameNum = 0
+
         for (let idx = 0; idx < animationFrames.length; idx++) {
-            animationQueue.push(setTimeout((i, j) => {
-                swap(i, j)
-            }, idx*delay, animationFrames[idx].i, animationFrames[idx].j))
+            if (animationFrames[idx].type == "Highlight") {
+                // Queue an animation to change color of every
+                // index in the object
+                // Passing array to timeout was odd
+                // https://stackoverflow.com/questions/30390993/passing-an-array-as-function-argument-to-settimeout-acts-not-like-passing-a-vari
+                (function (indexes) {
+                    animationQueue.push(setTimeout(function(arr) { 
+                        for (let i = 0; i < indexes.length; i++) {
+                            setBars(bars => {
+                                let data = [...bars];
+                                data[arr[i]].color = "red"
+                                return data;
+                            })
+                        }
+                    }, delay*frameNum, indexes));
+                })(animationFrames[idx].indexes.slice());
+
+                frameNum++;
+
+                // Unhighlight
+                // Consolidate into other
+                (function (indexes) {
+                    animationQueue.push(setTimeout(function(arr) { 
+                        for (let i = 0; i < indexes.length; i++) {
+                            setBars(bars => {
+                                let data = [...bars];
+                                data[arr[i]].color = "blue"
+                                return data;
+                            })
+                        }
+                    }, delay*frameNum, indexes));
+                })(animationFrames[idx].indexes.slice());
+
+                frameNum++;
+
+                continue;
+            }
+
+            if (animationFrames[idx].type == "Swap") {
+                animationQueue.push(setTimeout((i, j) => {
+                    console.log("Swap")
+                    setBars(bars => {
+                        let data = [...bars];
+                        let temp = data[i];
+                        data[i] = data[j];
+                        data[j] = temp;
+                        return data ;
+                    })
+                }, delay*frameNum, animationFrames[idx].i, animationFrames[idx].j))
+
+                frameNum++;
+            }
+
+            if (animationFrames[idx].type == "Replace") {
+                // Replace value at index i with val
+                animationQueue.push(setTimeout((i, val) => {
+                    setBars(bars => {
+                        let data = [...bars];
+                        data[i].height = val;
+                        return data ;
+                    })
+                }, delay*frameNum, animationFrames[idx].i, animationFrames[idx].val))
+
+                frameNum++;
+            }
         }
 
-        // Clear frames after they've all been queued
-        // On pause-play, frames will be generated fresh
+
+        // Need to overhaul pausing
+        // Only delete frames already played
+        // Resume from where left off, don't regen from start
+
+        // // Clear frames after they've all been queued
+        // // On pause-unpause, frames will be generated fresh
         animationFrames.length = 0;
     }
 
     const pauseAnim = () => {
         // Clear the queued timeout swap funcs
-        for (let i = 0; i <animationQueue.length; i++) {
+        for (let i = 0; i < animationQueue.length; i++) {
             clearTimeout(animationQueue[i])
         }
     }
 
-    const bubbleSort = (bars_state) => {
-        // Make a copy of the state to work on
-        let bars_temp = [...bars_state];
-        let curr_timer = 50;
-
-        for(var i = 0; i < bars_temp.length; i++){
-            for(var j = 0; j < ( bars_temp.length - i -1 ); j++){
-              if(bars_temp[j].height > bars_temp[j+1].height){
-                let temp = bars_temp[j];
-                bars_temp[j] = bars_temp[j+1];
-                bars_temp[j+1] = temp;
-
-                animationFrames.push({
-                    i: j,
-                    j: j+1,
-                })
-              }
-            }
-        }
-        // console.log(animationQueue)
-    }
-
-
     const generateArray = () => {
+        // Dequeue animations if they're still playing
+        pauseAnim()
+
         // Generate n bars, add to bars state array
+        let generated_bars = []
         for (let i = 0; i < barCount; i++) {
             generated_bars.push({
                 height: Math.floor(Math.random() * MAX_HEIGHT) + 1,
@@ -89,12 +147,70 @@ export default function SortingVisualizer(props) {
         setBars(generated_bars)
     }
 
-    // useEffect(() => {
-    //     console.log("Bars changed")
-    // }, [bars])
-    
-    // Each animation frame should store a bool for whether
-    // it has played or not, change it on async anim play
+
+
+
+
+
+
+
+
+
+
+
+    // const swap = (i, j) => {
+    //     // Must use setState to trigger re-render
+    //     setBars(bars => {
+    //         let data = [...bars];
+    //         let temp = data[i];
+    //         data[i] = data[j];
+    //         data[j] = temp;
+
+    //         return data ;
+    //     })
+    // }
+
+    // const playAnimation = () => {
+    //     // bubbleSort(bars)
+    //     // animationFrames = BubbleSort(bars)
+    //     animationFrames = getMergeSortAnimations(bars)
+    //     console.log(animationFrames)
+
+    //     // Queue up the frames in animationFrames
+    //     for (let idx = 0; idx < animationFrames.length; idx++) {
+    //         animationQueue.push(setTimeout((i, j) => {
+    //             swap(i, j)
+    //         }, idx*delay, animationFrames[idx].i, animationFrames[idx].j))
+    //     }
+
+    //     // Clear frames after they've all been queued
+    //     // On pause-unpause, frames will be generated fresh
+    //     animationFrames.length = 0;
+    // }
+
+    // const pauseAnim = () => {
+    //     // Clear the queued timeout swap funcs
+    //     for (let i = 0; i <animationQueue.length; i++) {
+    //         clearTimeout(animationQueue[i])
+    //     }
+    // }
+
+    // const generateArray = () => {
+    //     // Dequeue animations if they're still playing
+    //     pauseAnim()
+
+    //     // Generate n bars, add to bars state array
+    //     let generated_bars = []
+    //     for (let i = 0; i < barCount; i++) {
+    //         generated_bars.push({
+    //             height: Math.floor(Math.random() * MAX_HEIGHT) + 1,
+    //             color: "blue",   
+    //         })
+    //     }
+
+    //     setBars(generated_bars)
+    // }
+
     return (<>
         <div className="visualizer-container">
             {/* Visualizer View */}
