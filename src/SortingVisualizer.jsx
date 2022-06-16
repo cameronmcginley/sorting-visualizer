@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import { Paper, Box, Button, Link } from "@mui/material";
-import BubbleSort from './Algorithms/BubbleSort';
+import getBubbleSortAnimations from './Algorithms/BubbleSort';
 import getMergeSortAnimations from './Algorithms/MergeSort';
 
 export default function SortingVisualizer(props) {
@@ -28,12 +28,13 @@ export default function SortingVisualizer(props) {
         // if (animationQueue.length > 0) { return }
 
         // bubbleSort(bars)
-        // animationFrames = BubbleSort(bars)
+        // animationFrames = getBubbleSortAnimations(bars)
         
         // Don't regen frames after a pause-unpause
         if (animationFrames.length == 0) {
             // Get frames for immediate use
-            animationFrames = getMergeSortAnimations(bars)
+            // animationFrames = getMergeSortAnimations(bars)
+            animationFrames = getBubbleSortAnimations(bars)
             // Push to state so we can see frames from other funcs
             setAnimationFrames(animationFrames)
         }

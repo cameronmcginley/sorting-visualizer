@@ -1,31 +1,31 @@
-export default function getMergeSortAnimations(bars_state) {
+export default function getMergeSortanimationFrames(bars_state) {
     // Work on a copy of the state
     let bars = [...bars_state]
 
-    const animations = [];
+    const animationFrames = [];
     if (bars.length <= 1) return bars;
     const auxBars = bars.slice();
     
-    mergeSort(bars, auxBars, animations, 0, bars.length-1)
+    mergeSort(bars, auxBars, animationFrames, 0, bars.length-1)
 
-    return animations;
+    return animationFrames;
 }
 
-function mergeSort(bars, auxBars, animations, firstIndex, lastIndex) {
+function mergeSort(bars, auxBars, animationFrames, firstIndex, lastIndex) {
     // Base case, only merge/sort if 2 or more vals
     if (firstIndex === lastIndex) return;
 
     const midIndex = Math.floor((firstIndex + lastIndex) / 2);
 
     // Basic merge sort, split bars array in half and sort
-    mergeSort(auxBars, bars, animations, firstIndex, midIndex);
-    mergeSort(auxBars, bars, animations, midIndex+1, lastIndex);
+    mergeSort(auxBars, bars, animationFrames, firstIndex, midIndex);
+    mergeSort(auxBars, bars, animationFrames, midIndex+1, lastIndex);
     
     // Merge the two halves
-    merge(bars, auxBars, animations, firstIndex, midIndex, lastIndex);
+    merge(bars, auxBars, animationFrames, firstIndex, midIndex, lastIndex);
 }
 
-function merge(bars, auxBars, animations, firstIndex, midIndex, lastIndex) {
+function merge(bars, auxBars, animationFrames, firstIndex, midIndex, lastIndex) {
     // aux array
     let i = firstIndex;
     let j = midIndex + 1;
@@ -37,14 +37,14 @@ function merge(bars, auxBars, animations, firstIndex, midIndex, lastIndex) {
     // push until one array is empty
     while (i <= midIndex && j <= lastIndex) {
         // Change color of bars we're looking at
-        animations.push({
+        animationFrames.push({
             type: "Highlight",
             indexes: [i,j],
         })
 
         // Push the smaller val from aux array into main array
         if (auxBars[i].height <= auxBars[j].height) {
-            animations.push({
+            animationFrames.push({
                 type: "Replace",
                 i: k, 
                 val: auxBars[i].height,
@@ -53,7 +53,7 @@ function merge(bars, auxBars, animations, firstIndex, midIndex, lastIndex) {
             bars[k++] = auxBars[i++];
         }
         else {
-            animations.push({
+            animationFrames.push({
                 type: "Replace",
                 i: k,
                 val: auxBars[j].height,
@@ -65,13 +65,13 @@ function merge(bars, auxBars, animations, firstIndex, midIndex, lastIndex) {
     // if any remainder if first half
     while (i <= midIndex) {
         // hightlight bar being looked at
-        animations.push({
+        animationFrames.push({
             type: "Highlight",
             indexes: [i],
         });
 
         // push remainders from aux
-        animations.push({
+        animationFrames.push({
             type: "Replace",
             i: k,
             val: auxBars[i].height,
@@ -82,12 +82,12 @@ function merge(bars, auxBars, animations, firstIndex, midIndex, lastIndex) {
     // if any remainder in second half
     // same process as for first half
     while (j <= lastIndex) {
-        animations.push({
+        animationFrames.push({
             type: "Highlight",
             indexes: [j],
         });
 
-        animations.push({
+        animationFrames.push({
             type: "Replace",
             i: k,
             val: auxBars[j].height,
