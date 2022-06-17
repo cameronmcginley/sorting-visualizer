@@ -5,28 +5,6 @@ import { FormControl, InputLabel, Select, MenuItem, Paper, Box, Button, Link, In
 import getBubbleSortAnimations from './Algorithms/BubbleSort';
 import getMergeSortAnimations from './Algorithms/MergeSort';
 
-// function Oscillator() {
-//     let audioCtx;
-//     let oscillator;
-//     let gainNode;
-//     let oscillatorRunning;
-
-//     // First time set up
-//     if (!oscillatorInitialized) {
-//         setOscillatorInitialized(true)
-//         audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-//         oscillator = audioCtx.createOscillator();
-//         gainNode = aud
-//         ioCtx.createGain();
-//     }
-
-//     oscillator.start()
-//     oscillator.connect(gainNode);
-//     gainNode.connect(audioCtx.destination);
-//     oscillator.type = 'triangle';
-//     // oscillator.frequency.value = (height * 2) + 110;
-//     oscillator.frequency.value = currFrequency;
-// }
 
 export default function SortingVisualizer(props) {
     const [barCount, setBarCount] = React.useState(100);
@@ -53,39 +31,19 @@ export default function SortingVisualizer(props) {
 
     const [doPerfectArray, setDoPerfectArray] = React.useState(false);
 
-
     // Generate new array on load
     useEffect(() => {
         generateArray();
     }, [])
 
-    // const osc = new Tone.Oscillator(0, "sine").toDestination().start();
-
-    // First time oscillator setup
 
     const [oscillatorInitialized, setOscillatorInitialized] = React.useState(false)
     const [soundEnabled, setSoundEnabled] = React.useState(false)
-    const [currFrequency, setCurrFrequency] = React.useState(500)
+    const [currFrequency, setCurrFrequency] = React.useState(0)
 
     const [audioCtx, setAudioCtx] = React.useState(null)
     const [oscillator, setOscillator] = React.useState(null)
     const [gainNode, setGainNode] = React.useState(null)
-
-    const enableSound = () => {
-        // First time set up
-        // if (!setAudioCtx) {
-        setAudioCtx(new(window.AudioContext || window.webkitAudioContext)());
-            // setOscillator(audioCtx.createOscillator());
-            // setGainNode(audioCtx.createGain());
-        // }
-
-        // oscillator.start()
-        // oscillator.connect(gainNode);
-        // gainNode.connect(audioCtx.destination);
-        // oscillator.type = 'triangle';
-        // // oscillator.frequency.value = (height * 2) + 110;
-        // oscillator.frequency.value = currFrequency;
-    }
 
     // Initialize oscillator and gain after audioctx
     useEffect(() => {
@@ -106,8 +64,6 @@ export default function SortingVisualizer(props) {
                 oscillator.connect(gainNode);
                 gainNode.connect(audioCtx.destination);
                 oscillator.type = 'triangle';
-                // oscillator.frequency.value = (height * 2) + 110;
-                // oscillator.frequency.value = currFrequency;
             }
         }
         if (oscillator) {
@@ -121,32 +77,14 @@ export default function SortingVisualizer(props) {
         if (soundEnabled) {
             // First time setup
             setAudioCtx(new(window.AudioContext || window.webkitAudioContext)());
-
         }
         else {
-            setAudioCtx(null)
+            // setAudioCtx(null)
             if (oscillator) {
-                oscillator.stop()
+                oscillator.frequency.value = 0;
             }
         }
     }, [soundEnabled])
-
-    useEffect(() => {
-        // changeFreq(currFrequency)
-    }, [currFrequency])
-
-    
-
-
-
-
-
-
-    // const setFrequency = (height) => {
-    //     // osc.set({ frequency: (height * 3) + 400 })
-    //     oscillator.frequency.value = height
-        
-    // }
 
     const playAnimation = () => {
         setIsPlaying(true)
@@ -178,10 +116,6 @@ export default function SortingVisualizer(props) {
             animationFrames[i].hasPlayed = false;
         }
 
-        // Being the oscillator
-        // const osc = new Tone.Oscillator(0, "sine").toDestination().start();
-        // osc.set({frequency: 500})
-
         // Animation frame types: "Swap", "Replace", "Highlight"
         // Manually track number of frames queued
         // Since one frame can result in multiple animations
@@ -197,7 +131,7 @@ export default function SortingVisualizer(props) {
                     animationQueue.push(setTimeout(function(frame, arr) { 
                         frame.hasPlayed = true;
                         for (let i = 0; i < indexes.length; i++) {
-                            setCurrFrequency((bars[arr[i]].height * 2) + 110);
+                            setCurrFrequency((bars[arr[i]].height * 3) + 250);
                             setBars(bars => {
                                 let data = [...bars];
                                 data[arr[i]].color = HIGHLIGHT_COLOR
@@ -279,6 +213,7 @@ export default function SortingVisualizer(props) {
     const pauseAnim = () => {
         setIsPaused(true)
         setIsPlaying(false)
+        setCurrFrequency(0)
 
         // Clear any leftover colors from animations
         for (let i = 0; i < bars.length; i++) {
