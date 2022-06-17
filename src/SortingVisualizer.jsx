@@ -18,12 +18,17 @@ export default function SortingVisualizer(props) {
     const [animationQueue, setAnimationQueue] = React.useState([])
     let [animationFrames, setAnimationFrames] = React.useState([])
 
+    const [highlightEnabled, setHighlightEnabled] = React.useState(false)
+
     // This is max height - 1
     const MAX_HEIGHT = 99;
     const MAX_BARS = 100;
     const MAX_DELAY = 500;
     const PRIMARY_COLOR = "blue"
     const HIGHLIGHT_COLOR = "red"
+
+    const MAX_BARS_BUBBLESORT = 200;
+    const MAX_BARS_MERGESORT = 1000;
 
 
     const [isPlaying, setIsPlaying] = React.useState(false);
@@ -95,10 +100,10 @@ export default function SortingVisualizer(props) {
             // Get frames for immediate use
             switch (sortType) {
                 case "BubbleSort":
-                    animationFrames = getBubbleSortAnimations(bars)
+                    animationFrames = getBubbleSortAnimations(bars, highlightEnabled)
                     break;
                 case "MergeSort":
-                    animationFrames = getMergeSortAnimations(bars)
+                    animationFrames = getMergeSortAnimations(bars, highlightEnabled)
                     break;
             }
 
@@ -164,7 +169,7 @@ export default function SortingVisualizer(props) {
             if (animationFrames[idx].type == "Swap") {
                 animationQueue.push(setTimeout((frame) => {
                     frame.hasPlayed = true;
-                    // setFrequency(bars[frame.i].height)
+                    setCurrFrequency((bars[frame.i].height * 3) + 250);
                     setBars(bars => {
                         let data = [...bars];
                         let temp = data[frame.i];
@@ -185,7 +190,7 @@ export default function SortingVisualizer(props) {
                 // Replace value at index i with val
                 animationQueue.push(setTimeout((frame) => {
                     frame.hasPlayed = true;
-                    // setFrequency(bars[frame.i].height)
+                    setCurrFrequency((bars[frame.i].height * 3) + 250);
                     setBars(bars => {
                         let data = [...bars];
                         data[frame.i].height = frame.val;
@@ -452,7 +457,25 @@ export default function SortingVisualizer(props) {
                                 // disabled={isPlaying}
                             />
                         }
-                        label="Uniform Array" 
+                        label="Enable Sounds" 
+                    />
+                </FormGroup>
+
+                {/* Color */}
+                <FormGroup>
+                    <FormControlLabel 
+                        control={
+                            <Checkbox
+                                className='visualizer-setting'
+                                checked={highlightEnabled}
+                                onChange={async () => {
+                                    // Use above useEffect to regen array on state change
+                                    setHighlightEnabled(!highlightEnabled)
+                                }}
+                                // disabled={isPlaying}
+                            />
+                        }
+                        label="Enable Color on Comparison" 
                     />
                 </FormGroup>
 
