@@ -1,13 +1,39 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { Paper, Box, Button, Link, Input, Slider, Grid, Checkbox, FormGroup, FormControlLabel } from "@mui/material";
+import { FormControl, InputLabel, Select, MenuItem, Paper, Box, Button, Link, Input, Slider, Grid, Checkbox, FormGroup, FormControlLabel } from "@mui/material";
+// import * as Tone from 'tone';
 import getBubbleSortAnimations from './Algorithms/BubbleSort';
 import getMergeSortAnimations from './Algorithms/MergeSort';
+
+// function Oscillator() {
+//     let audioCtx;
+//     let oscillator;
+//     let gainNode;
+//     let oscillatorRunning;
+
+//     // First time set up
+//     if (!oscillatorInitialized) {
+//         setOscillatorInitialized(true)
+//         audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+//         oscillator = audioCtx.createOscillator();
+//         gainNode = aud
+//         ioCtx.createGain();
+//     }
+
+//     oscillator.start()
+//     oscillator.connect(gainNode);
+//     gainNode.connect(audioCtx.destination);
+//     oscillator.type = 'triangle';
+//     // oscillator.frequency.value = (height * 2) + 110;
+//     oscillator.frequency.value = currFrequency;
+// }
 
 export default function SortingVisualizer(props) {
     const [barCount, setBarCount] = React.useState(100);
     const [bars, setBars] = React.useState([]);
     const [delay, setDelay] = React.useState(1);
+    const [sortType, setSortType] = React.useState("BubbleSort")
+    
 
     // States used to prevent re-writing variables in this component
     // on renders.
@@ -33,6 +59,94 @@ export default function SortingVisualizer(props) {
         generateArray();
     }, [])
 
+    // const osc = new Tone.Oscillator(0, "sine").toDestination().start();
+
+    // First time oscillator setup
+
+    const [oscillatorInitialized, setOscillatorInitialized] = React.useState(false)
+    const [soundEnabled, setSoundEnabled] = React.useState(false)
+    const [currFrequency, setCurrFrequency] = React.useState(500)
+
+    const [audioCtx, setAudioCtx] = React.useState(null)
+    const [oscillator, setOscillator] = React.useState(null)
+    const [gainNode, setGainNode] = React.useState(null)
+
+    const enableSound = () => {
+        // First time set up
+        // if (!setAudioCtx) {
+        setAudioCtx(new(window.AudioContext || window.webkitAudioContext)());
+            // setOscillator(audioCtx.createOscillator());
+            // setGainNode(audioCtx.createGain());
+        // }
+
+        // oscillator.start()
+        // oscillator.connect(gainNode);
+        // gainNode.connect(audioCtx.destination);
+        // oscillator.type = 'triangle';
+        // // oscillator.frequency.value = (height * 2) + 110;
+        // oscillator.frequency.value = currFrequency;
+    }
+
+    // Initialize oscillator and gain after audioctx
+    useEffect(() => {
+        console.log("audioCtx changed")
+        if (audioCtx) {
+            setOscillator(audioCtx.createOscillator());
+            setGainNode(audioCtx.createGain());
+        }
+    }, [audioCtx])
+
+    // Fires when either changes
+    useEffect(() => {
+        console.log("oscillator or gainNode changed")
+        if (oscillator && gainNode) {
+            if (!oscillatorInitialized) {
+                setOscillatorInitialized(true)
+                oscillator.start()
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.type = 'triangle';
+                // oscillator.frequency.value = (height * 2) + 110;
+                // oscillator.frequency.value = currFrequency;
+            }
+        }
+        if (oscillator) {
+            oscillator.frequency.value = currFrequency;
+        }
+    }, [oscillator, gainNode, currFrequency])
+
+
+    useEffect(() => {
+        console.log("sound enabled")
+        if (soundEnabled) {
+            // First time setup
+            setAudioCtx(new(window.AudioContext || window.webkitAudioContext)());
+
+        }
+        else {
+            setAudioCtx(null)
+            if (oscillator) {
+                oscillator.stop()
+            }
+        }
+    }, [soundEnabled])
+
+    useEffect(() => {
+        // changeFreq(currFrequency)
+    }, [currFrequency])
+
+    
+
+
+
+
+
+
+    // const setFrequency = (height) => {
+    //     // osc.set({ frequency: (height * 3) + 400 })
+    //     oscillator.frequency.value = height
+        
+    // }
 
     const playAnimation = () => {
         setIsPlaying(true)
@@ -41,12 +155,20 @@ export default function SortingVisualizer(props) {
         // Don't regen frames after a pause-unpause
         if (animationFrames.length == 0) {
             // Get frames for immediate use
-            // animationFrames = getMergeSortAnimations(bars)
-            animationFrames = getBubbleSortAnimations(bars)
+            switch (sortType) {
+                case "BubbleSort":
+                    animationFrames = getBubbleSortAnimations(bars)
+                    break;
+                case "MergeSort":
+                    animationFrames = getMergeSortAnimations(bars)
+                    break;
+            }
+
             // Push a frame indicating end of animation
             animationFrames.push({
                 type: "End",
             })
+
             // Push to state so we can see frames from other funcs
             setAnimationFrames(animationFrames)
         }
@@ -55,6 +177,10 @@ export default function SortingVisualizer(props) {
         for (let i = 0; i < animationFrames.length; i++) {
             animationFrames[i].hasPlayed = false;
         }
+
+        // Being the oscillator
+        // const osc = new Tone.Oscillator(0, "sine").toDestination().start();
+        // osc.set({frequency: 500})
 
         // Animation frame types: "Swap", "Replace", "Highlight"
         // Manually track number of frames queued
@@ -71,6 +197,7 @@ export default function SortingVisualizer(props) {
                     animationQueue.push(setTimeout(function(frame, arr) { 
                         frame.hasPlayed = true;
                         for (let i = 0; i < indexes.length; i++) {
+                            setCurrFrequency((bars[arr[i]].height * 2) + 110);
                             setBars(bars => {
                                 let data = [...bars];
                                 data[arr[i]].color = HIGHLIGHT_COLOR
@@ -103,6 +230,7 @@ export default function SortingVisualizer(props) {
             if (animationFrames[idx].type == "Swap") {
                 animationQueue.push(setTimeout((frame) => {
                     frame.hasPlayed = true;
+                    // setFrequency(bars[frame.i].height)
                     setBars(bars => {
                         let data = [...bars];
                         let temp = data[frame.i];
@@ -123,6 +251,7 @@ export default function SortingVisualizer(props) {
                 // Replace value at index i with val
                 animationQueue.push(setTimeout((frame) => {
                     frame.hasPlayed = true;
+                    // setFrequency(bars[frame.i].height)
                     setBars(bars => {
                         let data = [...bars];
                         data[frame.i].height = frame.val;
@@ -136,6 +265,8 @@ export default function SortingVisualizer(props) {
             if (animationFrames[idx].type == "End") {
                 // Replace value at index i with val
                 animationQueue.push(setTimeout((frame) => {
+                    // osc.set({frequency: 0})
+                    setCurrFrequency(0)
                     frame.hasPlayed = true;
                     pauseAnim()
                 }, delay*(frameNum-1), animationFrames[idx]))
@@ -216,7 +347,7 @@ export default function SortingVisualizer(props) {
     // Wait for flag to change before regenerating array
     useEffect(() => {
         generateArray()
-    }, [doPerfectArray, barCount])
+    }, [doPerfectArray, barCount, sortType])
 
     return (<>
         <div className="visualizer-container">
@@ -243,6 +374,7 @@ export default function SortingVisualizer(props) {
             <Paper variant="outlined" className='visualizer-settings'>
                 {/* Generate array */}
                 <Button
+                    className='visualizer-setting'
                     onClick={() => {generateArray()}}
                     // disabled={isPlaying}
                     variant="outlined"
@@ -253,6 +385,7 @@ export default function SortingVisualizer(props) {
 
                 {/* Play animation */}
                 <Button
+                    className='visualizer-setting'
                     onClick={() => {playAnimation()}}
                     disabled={isPlaying}
                     variant="outlined"
@@ -262,6 +395,7 @@ export default function SortingVisualizer(props) {
 
                 {/* Pause animation */}
                 <Button
+                    className='visualizer-setting'
                     onClick={() => {pauseAnim()}}
                     disabled={isPaused}
                     variant="outlined"
@@ -276,6 +410,7 @@ export default function SortingVisualizer(props) {
                     </Grid> */}
                     <Grid item xs>
                         <Slider
+                            className='visualizer-setting'
                             value={barCount}
                             onChange={(e) => {
                                 // Don't keep updating if sliding past MAX_BARS
@@ -291,6 +426,7 @@ export default function SortingVisualizer(props) {
                     </Grid>
                     <Grid item>
                         <Input
+                            className='visualizer-setting'
                             value={barCount}
                             size="small"
                             onChange={(e) => {
@@ -315,6 +451,7 @@ export default function SortingVisualizer(props) {
                     </Grid> */}
                     <Grid item xs>
                         <Slider
+                            className='visualizer-setting'
                             value={delay}
                             onChange={(e) => {
                                 // Don't keep updating if sliding past MAX_BARS
@@ -330,6 +467,7 @@ export default function SortingVisualizer(props) {
                     </Grid>
                     <Grid item>
                         <Input
+                            className='visualizer-setting'
                             value={delay}
                             size="small"
                             onChange={(e) => {
@@ -352,6 +490,7 @@ export default function SortingVisualizer(props) {
                     <FormControlLabel 
                         control={
                             <Checkbox
+                                className='visualizer-setting'
                                 checked={doPerfectArray}
                                 onChange={async () => {
                                     // Use above useEffect to regen array on state change
@@ -363,6 +502,41 @@ export default function SortingVisualizer(props) {
                         label="Uniform Array" 
                     />
                 </FormGroup>
+
+                {/* Sounds */}
+                <FormGroup>
+                    <FormControlLabel 
+                        control={
+                            <Checkbox
+                                className='visualizer-setting'
+                                checked={soundEnabled}
+                                onChange={async () => {
+                                    // Use above useEffect to regen array on state change
+                                    setSoundEnabled(!soundEnabled)
+                                }}
+                                // disabled={isPlaying}
+                            />
+                        }
+                        label="Uniform Array" 
+                    />
+                </FormGroup>
+
+                <FormControl sx={{ m: 1, minWidth: 80 }}>
+                    <InputLabel id="demo-simple-select-autowidth-label">Sorting Algorithm</InputLabel>
+                    <Select
+                        className='visualizer-setting'
+                        labelId="demo-simple-select-autowidth-label"
+                        id="demo-simple-select-autowidth"
+                        value={sortType}
+                        onChange={(e) => {setSortType(e.target.value)}}
+                        autoWidth
+                        label="Sorting Algorithm"
+                        disabled={isPlaying}
+                    >
+                    <MenuItem value={"BubbleSort"}>Bubble Sort</MenuItem>
+                    <MenuItem value={"MergeSort"}>Merge Sort</MenuItem>
+                    </Select>
+                </FormControl>
             </Paper>
         </div>
     </>)

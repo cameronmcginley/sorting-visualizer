@@ -70,7 +70,19 @@ body, html {
 .visualizer-settings {
   width: 17%;
   height: 35rem;
+
+  display: flex;
+  justify-content: start;
+  flex-direction: column;
+  align-items: center;
+
+  
 }
+
+/* .visualizer-setting { */
+  /* margin-top: 5%; */
+  /* padding-top: 50%; */
+/* } */
 
 .bars-container {
   /* background-color: #f6f6f6; */
