@@ -4,13 +4,14 @@ import { FormControl, InputLabel, Select, MenuItem, Paper, Box, Button, Link, In
 // import * as Tone from 'tone';
 import getBubbleSortAnimations from './Algorithms/BubbleSort';
 import getMergeSortAnimations from './Algorithms/MergeSort';
+import getRadixSortAnimations from './Algorithms/RadixSort';
 
 
 export default function SortingVisualizer(props) {
     const [barCount, setBarCount] = React.useState(100);
     const [bars, setBars] = React.useState([]);
     const [delay, setDelay] = React.useState(1);
-    const [sortType, setSortType] = React.useState("BubbleSort")
+    const [sortType, setSortType] = React.useState("RadixSort")
     
 
     // States used to prevent re-writing variables in this component
@@ -52,7 +53,7 @@ export default function SortingVisualizer(props) {
 
     // Initialize oscillator and gain after audioctx
     useEffect(() => {
-        console.log("audioCtx changed")
+        // console.log("audioCtx changed")
         if (audioCtx) {
             setOscillator(audioCtx.createOscillator());
             setGainNode(audioCtx.createGain());
@@ -61,7 +62,7 @@ export default function SortingVisualizer(props) {
 
     // Fires when either changes
     useEffect(() => {
-        console.log("oscillator or gainNode changed")
+        // console.log("oscillator or gainNode changed")
         if (oscillator && gainNode) {
             if (!oscillatorInitialized) {
                 setOscillatorInitialized(true)
@@ -78,7 +79,7 @@ export default function SortingVisualizer(props) {
 
 
     useEffect(() => {
-        console.log("sound enabled")
+        // console.log("sound enabled")
         if (soundEnabled) {
             // First time setup
             setAudioCtx(new(window.AudioContext || window.webkitAudioContext)());
@@ -104,6 +105,9 @@ export default function SortingVisualizer(props) {
                     break;
                 case "MergeSort":
                     animationFrames = getMergeSortAnimations(bars, highlightEnabled)
+                    break;
+                case "RadixSort":
+                    animationFrames = getRadixSortAnimations(bars, highlightEnabled)
                     break;
             }
 
@@ -136,7 +140,7 @@ export default function SortingVisualizer(props) {
                     animationQueue.push(setTimeout(function(frame, arr) { 
                         frame.hasPlayed = true;
                         for (let i = 0; i < indexes.length; i++) {
-                            setCurrFrequency((bars[arr[i]].height * 3) + 250);
+                            setCurrFrequency((bars[arr[i]].height * 4) + 250);
                             setBars(bars => {
                                 let data = [...bars];
                                 data[arr[i]].color = HIGHLIGHT_COLOR
@@ -169,7 +173,7 @@ export default function SortingVisualizer(props) {
             if (animationFrames[idx].type == "Swap") {
                 animationQueue.push(setTimeout((frame) => {
                     frame.hasPlayed = true;
-                    setCurrFrequency((bars[frame.i].height * 3) + 250);
+                    setCurrFrequency((bars[frame.i].height * 4) + 250);
                     setBars(bars => {
                         let data = [...bars];
                         let temp = data[frame.i];
@@ -190,7 +194,7 @@ export default function SortingVisualizer(props) {
                 // Replace value at index i with val
                 animationQueue.push(setTimeout((frame) => {
                     frame.hasPlayed = true;
-                    setCurrFrequency((bars[frame.i].height * 3) + 250);
+                    setCurrFrequency((bars[frame.val].height * 4) + 250);
                     setBars(bars => {
                         let data = [...bars];
                         data[frame.i].height = frame.val;
@@ -214,6 +218,9 @@ export default function SortingVisualizer(props) {
             }
         }
     }
+
+    // TODO: "Verify" animation. After sort, run through the array one by one
+    // playing a sound and changing bar color to green. Reset color after finish (pause func)
 
     const pauseAnim = () => {
         setIsPaused(true)
@@ -491,6 +498,7 @@ export default function SortingVisualizer(props) {
                         label="Sorting Algorithm"
                         disabled={isPlaying}
                     >
+                    <MenuItem value={"RadixSort"}>Radix Sort</MenuItem>
                     <MenuItem value={"BubbleSort"}>Bubble Sort</MenuItem>
                     <MenuItem value={"MergeSort"}>Merge Sort</MenuItem>
                     </Select>
