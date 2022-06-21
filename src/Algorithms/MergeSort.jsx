@@ -1,4 +1,4 @@
-export default function getMergeSortanimationFrames(bars_state, highlightEnabled) {
+const getMergeSortanimationFrames = (bars_state, highlightEnabled) => {
     // Work on a copy of the state
     let bars = [...bars_state]
 
@@ -11,7 +11,7 @@ export default function getMergeSortanimationFrames(bars_state, highlightEnabled
     return animationFrames;
 }
 
-function mergeSort(bars, auxBars, animationFrames, firstIndex, lastIndex, highlightEnabled) {
+const mergeSort = (bars, auxBars, animationFrames, firstIndex, lastIndex, highlightEnabled) => {
     // Base case, only merge/sort if 2 or more vals
     if (firstIndex === lastIndex) return;
 
@@ -25,7 +25,7 @@ function mergeSort(bars, auxBars, animationFrames, firstIndex, lastIndex, highli
     merge(bars, auxBars, animationFrames, firstIndex, midIndex, lastIndex, highlightEnabled);
 }
 
-function merge(bars, auxBars, animationFrames, firstIndex, midIndex, lastIndex, highlightEnabled) {
+const merge = (bars, auxBars, animationFrames, firstIndex, midIndex, lastIndex, highlightEnabled) => {
     // aux array
     let i = firstIndex;
     let j = midIndex + 1;
@@ -101,3 +101,5 @@ function merge(bars, auxBars, animationFrames, firstIndex, midIndex, lastIndex, 
         bars[k++] = auxBars[j++];
     }
 }
+
+export default getMergeSortanimationFrames;

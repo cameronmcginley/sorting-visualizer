@@ -11,7 +11,7 @@ export default function SortingVisualizer(props) {
     const [barCount, setBarCount] = React.useState(100);
     const [bars, setBars] = React.useState([]);
     const [delay, setDelay] = React.useState(1);
-    const [sortType, setSortType] = React.useState("RadixSort")
+    const [sortType, setSortType] = React.useState("BubbleSort")
     
 
     // States used to prevent re-writing variables in this component
@@ -19,17 +19,19 @@ export default function SortingVisualizer(props) {
     const [animationQueue, setAnimationQueue] = React.useState([])
     let [animationFrames, setAnimationFrames] = React.useState([])
 
-    const [highlightEnabled, setHighlightEnabled] = React.useState(false)
+    const [highlightEnabled, setHighlightEnabled] = React.useState(true)
 
     // This is max height - 1
     const MAX_HEIGHT = 99;
-    const MAX_BARS = 100;
     const MAX_DELAY = 500;
-    const PRIMARY_COLOR = "blue"
-    const HIGHLIGHT_COLOR = "red"
+    const PRIMARY_COLOR = "blue";
+    const HIGHLIGHT_COLOR = "red";
 
-    const MAX_BARS_BUBBLESORT = 200;
-    const MAX_BARS_MERGESORT = 1000;
+    const MAX_BARS = {
+        "BubbleSort": 200,
+        "MergeSort": 500,
+        "RadixSort": 500,
+    };
 
 
     const [isPlaying, setIsPlaying] = React.useState(false);
@@ -53,7 +55,6 @@ export default function SortingVisualizer(props) {
 
     // Initialize oscillator and gain after audioctx
     useEffect(() => {
-        // console.log("audioCtx changed")
         if (audioCtx) {
             setOscillator(audioCtx.createOscillator());
             setGainNode(audioCtx.createGain());
@@ -62,7 +63,6 @@ export default function SortingVisualizer(props) {
 
     // Fires when either changes
     useEffect(() => {
-        // console.log("oscillator or gainNode changed")
         if (oscillator && gainNode) {
             if (!oscillatorInitialized) {
                 setOscillatorInitialized(true)
@@ -79,7 +79,6 @@ export default function SortingVisualizer(props) {
 
 
     useEffect(() => {
-        // console.log("sound enabled")
         if (soundEnabled) {
             // First time setup
             setAudioCtx(new(window.AudioContext || window.webkitAudioContext)());
@@ -97,7 +96,7 @@ export default function SortingVisualizer(props) {
         setIsPaused(false)
 
         // Don't regen frames after a pause-unpause
-        if (animationFrames.length == 0) {
+        if (animationFrames.length === 0) {
             // Get frames for immediate use
             switch (sortType) {
                 case "BubbleSort":
@@ -131,7 +130,7 @@ export default function SortingVisualizer(props) {
         let frameNum = 0
 
         for (let idx = 0; idx < animationFrames.length; idx++) {
-            if (animationFrames[idx].type == "Highlight") {
+            if (animationFrames[idx].type === "Highlight") {
                 // Queue an animation to change color of every
                 // index in the object
                 // Passing array to timeout was odd
@@ -140,7 +139,7 @@ export default function SortingVisualizer(props) {
                     animationQueue.push(setTimeout(function(frame, arr) { 
                         frame.hasPlayed = true;
                         for (let i = 0; i < indexes.length; i++) {
-                            setCurrFrequency((bars[arr[i]].height * 4) + 250);
+                            setCurrFrequency((bars[arr[i]].height * 6) + 150);
                             setBars(bars => {
                                 let data = [...bars];
                                 data[arr[i]].color = HIGHLIGHT_COLOR
@@ -170,10 +169,10 @@ export default function SortingVisualizer(props) {
                 continue;
             }
 
-            if (animationFrames[idx].type == "Swap") {
+            if (animationFrames[idx].type === "Swap") {
                 animationQueue.push(setTimeout((frame) => {
                     frame.hasPlayed = true;
-                    setCurrFrequency((bars[frame.i].height * 4) + 250);
+                    setCurrFrequency((bars[frame.i].height * 6) + 150);
                     setBars(bars => {
                         let data = [...bars];
                         let temp = data[frame.i];
@@ -190,11 +189,11 @@ export default function SortingVisualizer(props) {
                 frameNum++;
             }
 
-            if (animationFrames[idx].type == "Replace") {
+            if (animationFrames[idx].type === "Replace") {
                 // Replace value at index i with val
                 animationQueue.push(setTimeout((frame) => {
                     frame.hasPlayed = true;
-                    setCurrFrequency((bars[frame.val].height * 4) + 250);
+                    setCurrFrequency((frame.val * 6) + 150);
                     setBars(bars => {
                         let data = [...bars];
                         data[frame.i].height = frame.val;
@@ -205,7 +204,7 @@ export default function SortingVisualizer(props) {
                 frameNum++;
             }
 
-            if (animationFrames[idx].type == "End") {
+            if (animationFrames[idx].type === "End") {
                 // Replace value at index i with val
                 animationQueue.push(setTimeout((frame) => {
                     // osc.set({frequency: 0})
@@ -221,6 +220,7 @@ export default function SortingVisualizer(props) {
 
     // TODO: "Verify" animation. After sort, run through the array one by one
     // playing a sound and changing bar color to green. Reset color after finish (pause func)
+    // TODO: Add tracker for number of comparisons and number of accesses
 
     const pauseAnim = () => {
         setIsPaused(true)
@@ -245,7 +245,6 @@ export default function SortingVisualizer(props) {
         let i = 0;
         while (animationFrames[i] && animationFrames[i].hasPlayed) {
             animationFrames.shift();
-            // console.log("Shifted")
         }
     }
 
@@ -270,7 +269,7 @@ export default function SortingVisualizer(props) {
             // Generate perfectly spaced in height bars
             for (let i = 1; i <= barCount; i++) {
                 generated_bars.push({
-                    height: i * MAX_HEIGHT/barCount,
+                    height: Math.round(i * MAX_HEIGHT/barCount),
                     color: PRIMARY_COLOR,   
                 })
             }
@@ -361,12 +360,12 @@ export default function SortingVisualizer(props) {
                             value={barCount}
                             onChange={(e) => {
                                 // Don't keep updating if sliding past MAX_BARS
-                                if (e.target.value == MAX_BARS && barCount == MAX_BARS) {
+                                if (e.target.value === MAX_BARS[sortType] && barCount === MAX_BARS[sortType]) {
                                     return
                                 }
                                 setBarCount(e.target.value)
                             }}
-                            max={MAX_BARS}
+                            max={MAX_BARS[sortType]}
                             min={5}
                             disabled={isPlaying}
                         />
@@ -383,7 +382,7 @@ export default function SortingVisualizer(props) {
                             inputProps={{
                                 step: 10,
                                 min: 5,
-                                max: MAX_BARS,
+                                max: MAX_BARS[sortType],
                                 type: 'number',
                             }}
                             disabled={isPlaying}
@@ -402,7 +401,7 @@ export default function SortingVisualizer(props) {
                             value={delay}
                             onChange={(e) => {
                                 // Don't keep updating if sliding past MAX_BARS
-                                if (e.target.value == MAX_DELAY && delay == MAX_DELAY) {
+                                if (e.target.value === MAX_DELAY && delay === MAX_DELAY) {
                                     return
                                 }
                                 setDelay(e.target.value)
@@ -469,7 +468,7 @@ export default function SortingVisualizer(props) {
                 </FormGroup>
 
                 {/* Color */}
-                <FormGroup>
+                {/* <FormGroup>
                     <FormControlLabel 
                         control={
                             <Checkbox
@@ -484,7 +483,7 @@ export default function SortingVisualizer(props) {
                         }
                         label="Enable Color on Comparison" 
                     />
-                </FormGroup>
+                </FormGroup> */}
 
                 <FormControl sx={{ m: 1, minWidth: 80 }}>
                     <InputLabel id="demo-simple-select-autowidth-label">Sorting Algorithm</InputLabel>
