@@ -1,5 +1,6 @@
 {
   "name": "sorting-visualizer2",
+  "homepage": "https://cameronmcginley.com/sorting-visualizer",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -9,6 +10,7 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "gh-pages": "^4.0.0",
     "mui": "^0.0.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
@@ -24,7 +26,9 @@
     "lint": "eslint src/**/*.{js,jsx,ts,tsx,json}",
     "lint:fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx,json}'",
     "formatold": "prettier --write 'src/**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
-    "format": "prettier --write . --config .prettierrc"
+    "format": "prettier --write . --config .prettierrc",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
