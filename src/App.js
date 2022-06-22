@@ -1,6 +1,7 @@
-import './App.css';
-import SortingVisualizer from './SortingVisualizer';
-import Navbar from './Components/Navbar';
+import "./App.css";
+import SortingVisualizer from "./SortingVisualizer";
+import Navbar from "./Components/Navbar";
+import React from "react";
 
 //"homepage": "http://cameronmcginley.com/sorting-visualizer",
 
