@@ -1,5 +1,5 @@
 import "./App.css";
-import SortingVisualizer from "./SortingVisualizer";
+import SortingVisualizer from "./Components/SortingVisualizer";
 import Navbar from "./Components/Navbar";
 import React from "react";
 

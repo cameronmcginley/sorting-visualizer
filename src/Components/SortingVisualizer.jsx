@@ -1,27 +1,15 @@
 import React, { useEffect } from "react";
-import "./App.css";
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Paper,
-  Button,
-  Input,
-  Slider,
-  Grid,
-  Checkbox,
-  FormGroup,
-  FormControlLabel,
-} from "@mui/material";
-import getBubbleSortAnimations from "./Algorithms/BubbleSort";
-import getMergeSortAnimations from "./Algorithms/MergeSort";
-import getRadixSortAnimations from "./Algorithms/RadixSort";
+import "../App.css";
+import SortingSettings from "./SortingSettings";
+import { Paper } from "@mui/material";
+import getBubbleSortAnimations from "../Algorithms/BubbleSort";
+import getMergeSortAnimations from "../Algorithms/MergeSort";
+import getRadixSortAnimations from "../Algorithms/RadixSort";
 
 export default function SortingVisualizer() {
   const [barCount, setBarCount] = React.useState(100);
   const [bars, setBars] = React.useState([]);
-  const [delay, setDelay] = React.useState(1);
+  const [delay] = React.useState(1);
   const [sortType, setSortType] = React.useState("BubbleSort");
 
   // States used to prevent re-writing variables in this component
@@ -353,206 +341,24 @@ export default function SortingVisualizer() {
           </div>
         </Paper>
 
-        {/* Settings */}
-        <Paper variant="outlined" className="visualizer-settings">
-          {/* Generate array */}
-          <Button
-            className="visualizer-setting"
-            onClick={() => {
-              generateArray();
-            }}
-            // disabled={isPlaying}
-            variant="outlined"
-            disabled={isPlaying}
-          >
-            Generate
-          </Button>
-
-          {/* Play animation */}
-          <Button
-            className="visualizer-setting"
-            onClick={() => {
-              playAnimation();
-            }}
-            disabled={isPlaying}
-            variant="outlined"
-          >
-            Play
-          </Button>
-
-          {/* Pause animation */}
-          <Button
-            className="visualizer-setting"
-            onClick={() => {
-              pauseAnim();
-            }}
-            disabled={isPaused}
-            variant="outlined"
-          >
-            Pause
-          </Button>
-
-          {/* Bar count slider/input */}
-          <Grid container spacing={2} alignItems="center">
-            {/* <Grid item>
-                        <VolumeUp />
-                    </Grid> */}
-            <Grid item xs>
-              <Slider
-                className="visualizer-setting"
-                value={barCount}
-                onChange={(e) => {
-                  // Don't keep updating if sliding past MAX_BARS
-                  if (
-                    e.target.value === MAX_BARS[sortType] &&
-                    barCount === MAX_BARS[sortType]
-                  ) {
-                    return;
-                  }
-                  setBarCount(e.target.value);
-                }}
-                max={MAX_BARS[sortType]}
-                min={5}
-                disabled={isPlaying}
-              />
-            </Grid>
-            <Grid item>
-              <Input
-                className="visualizer-setting"
-                value={barCount}
-                size="small"
-                onChange={(e) => {
-                  setBarCount(e.target.value);
-                }}
-                // onBlur={handleBlur}
-                inputProps={{
-                  step: 10,
-                  min: 5,
-                  max: MAX_BARS[sortType],
-                  type: "number",
-                }}
-                disabled={isPlaying}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Delay slider/input */}
-          <Grid container spacing={2} alignItems="center">
-            {/* <Grid item>
-                        <VolumeUp />
-                    </Grid> */}
-            <Grid item xs>
-              <Slider
-                className="visualizer-setting"
-                value={delay}
-                onChange={(e) => {
-                  // Don't keep updating if sliding past MAX_BARS
-                  if (e.target.value === MAX_DELAY && delay === MAX_DELAY) {
-                    return;
-                  }
-                  setDelay(e.target.value);
-                }}
-                max={MAX_DELAY}
-                min={1}
-                disabled={isPlaying}
-              />
-            </Grid>
-            <Grid item>
-              <Input
-                className="visualizer-setting"
-                value={delay}
-                size="small"
-                onChange={(e) => {
-                  setDelay(e.target.value);
-                }}
-                // onBlur={handleBlur}
-                inputProps={{
-                  step: 1,
-                  min: 1,
-                  max: MAX_DELAY,
-                  type: "number",
-                }}
-                disabled={isPlaying}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Uniform/perfect array */}
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  className="visualizer-setting"
-                  checked={doPerfectArray}
-                  onChange={async () => {
-                    // Use above useEffect to regen array on state change
-                    setDoPerfectArray(!doPerfectArray);
-                  }}
-                  disabled={isPlaying}
-                />
-              }
-              label="Uniform Array"
-            />
-          </FormGroup>
-
-          {/* Sounds */}
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  className="visualizer-setting"
-                  checked={soundEnabled}
-                  onChange={async () => {
-                    // Use above useEffect to regen array on state change
-                    setSoundEnabled(!soundEnabled);
-                  }}
-                  // disabled={isPlaying}
-                />
-              }
-              label="Enable Sounds"
-            />
-          </FormGroup>
-
-          {/* Color */}
-          {/* <FormGroup>
-                    <FormControlLabel 
-                        control={
-                            <Checkbox
-                                className='visualizer-setting'
-                                checked={highlightEnabled}
-                                onChange={async () => {
-                                    // Use above useEffect to regen array on state change
-                                    setHighlightEnabled(!highlightEnabled)
-                                }}
-                                // disabled={isPlaying}
-                            />
-                        }
-                        label="Enable Color on Comparison" 
-                    />
-                </FormGroup> */}
-
-          <FormControl sx={{ m: 1, minWidth: 80 }}>
-            <InputLabel id="demo-simple-select-autowidth-label">
-              Sorting Algorithm
-            </InputLabel>
-            <Select
-              className="visualizer-setting"
-              labelId="demo-simple-select-autowidth-label"
-              id="demo-simple-select-autowidth"
-              value={sortType}
-              onChange={(e) => {
-                setSortType(e.target.value);
-              }}
-              autoWidth
-              label="Sorting Algorithm"
-              disabled={isPlaying}
-            >
-              <MenuItem value={"RadixSort"}>Radix Sort</MenuItem>
-              <MenuItem value={"BubbleSort"}>Bubble Sort</MenuItem>
-              <MenuItem value={"MergeSort"}>Merge Sort</MenuItem>
-            </Select>
-          </FormControl>
-        </Paper>
+        <SortingSettings
+          MAX_BARS={MAX_BARS}
+          MAX_DELAY={MAX_DELAY}
+          generateArray={generateArray}
+          playAnimation={playAnimation}
+          pauseAnim={pauseAnim}
+          isPlaying={isPlaying}
+          isPaused={isPaused}
+          barCount={barCount}
+          setBarCount={setBarCount}
+          delay={delay}
+          doPerfectArray={doPerfectArray}
+          setDoPerfectArray={setDoPerfectArray}
+          soundEnabled={soundEnabled}
+          setSoundEnabled={setSoundEnabled}
+          sortType={sortType}
+          setSortType={setSortType}
+        />
       </div>
     </>
   );
