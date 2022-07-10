@@ -108,3 +108,24 @@ p {
   justify-content: center;
   align-items: flex-end;
 }
+
+@media only screen and (max-width: 600px) {
+  .visualizer-settings-buttons {
+    display: grid;
+    grid-template-columns: 50% 50%;
+  }
+
+  .visualizer {
+    height: 20rem;
+  }
+
+  .navbar-content {
+    justify-content: center;
+  }
+}
+
+@media only screen and (max-width: 700px) {
+  .visualizer-settings-options {
+    width: 100%;
+  }
+}
