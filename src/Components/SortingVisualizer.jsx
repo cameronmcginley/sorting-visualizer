@@ -20,7 +20,7 @@ export default function SortingVisualizer() {
   const [highlightEnabled] = React.useState(true);
 
   // This is max height - 1
-  const MAX_HEIGHT = 99;
+  const MAX_HEIGHT = 9999;
   const MAX_DELAY = 500;
   const PRIMARY_COLOR = "blue";
   const HIGHLIGHT_COLOR = "red";
@@ -136,7 +136,7 @@ export default function SortingVisualizer() {
               function (frame, arr) {
                 frame.hasPlayed = true;
                 for (let i = 0; i < indexes.length; i++) {
-                  setCurrFrequency(bars[arr[i]].height * 6 + 150);
+                  setCurrFrequency((bars[arr[i]].height / 100) * 6 + 150);
                   setBars((bars) => {
                     let data = [...bars];
                     data[arr[i]].color = HIGHLIGHT_COLOR;
@@ -183,7 +183,7 @@ export default function SortingVisualizer() {
           setTimeout(
             (frame) => {
               frame.hasPlayed = true;
-              setCurrFrequency(bars[frame.i].height * 6 + 150);
+              setCurrFrequency((bars[frame.i].height / 100) * 6 + 150);
               setBars((bars) => {
                 let data = [...bars];
                 let temp = data[frame.i];
@@ -210,7 +210,7 @@ export default function SortingVisualizer() {
           setTimeout(
             (frame) => {
               frame.hasPlayed = true;
-              setCurrFrequency(frame.val * 6 + 150);
+              setCurrFrequency((frame.val / 100) * 6 + 150);
               setBars((bars) => {
                 let data = [...bars];
                 data[frame.i].height = frame.val;
@@ -333,7 +333,7 @@ export default function SortingVisualizer() {
                 style={{
                   backgroundColor: val.color,
                   // height: `${val.height}px`,
-                  height: `${val.height}%`,
+                  height: `${val.height / 100}%`,
                   width: `${100 / barCount}%`,
                 }}
               />
