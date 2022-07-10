@@ -9,7 +9,7 @@ import getRadixSortAnimations from "../Algorithms/RadixSort";
 export default function SortingVisualizer() {
   const [barCount, setBarCount] = React.useState(100);
   const [bars, setBars] = React.useState([]);
-  const [delay] = React.useState(1);
+  const [delay, setDelay] = React.useState(1);
   const [sortType, setSortType] = React.useState("BubbleSort");
 
   // States used to prevent re-writing variables in this component
@@ -352,6 +352,7 @@ export default function SortingVisualizer() {
           barCount={barCount}
           setBarCount={setBarCount}
           delay={delay}
+          setDelay={setDelay}
           doPerfectArray={doPerfectArray}
           setDoPerfectArray={setDoPerfectArray}
           soundEnabled={soundEnabled}
