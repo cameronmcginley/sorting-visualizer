@@ -5,12 +5,14 @@ import { Paper } from "@mui/material";
 import getBubbleSortAnimations from "../Algorithms/BubbleSort";
 import getMergeSortAnimations from "../Algorithms/MergeSort";
 import getRadixSortAnimations from "../Algorithms/RadixSort";
+import getBogosortAnimations from "../Algorithms/Bogosort";
 
 export default function SortingVisualizer() {
   const [barCount, setBarCount] = React.useState(100);
   const [bars, setBars] = React.useState([]);
   const [delay, setDelay] = React.useState(1);
   const [sortType, setSortType] = React.useState("BubbleSort");
+  const [sortAttempts, setSortAttempts] = React.useState(0);
 
   // States used to prevent re-writing variables in this component
   // on renders.
@@ -29,6 +31,7 @@ export default function SortingVisualizer() {
     BubbleSort: 200,
     MergeSort: 500,
     RadixSort: 500,
+    Bogosort: 7,
   };
 
   const [isPlaying, setIsPlaying] = React.useState(false);
@@ -89,6 +92,8 @@ export default function SortingVisualizer() {
   const playAnimation = () => {
     setIsPlaying(true);
     setIsPaused(false);
+    let tempSortAttempts = 0;
+    setSortAttempts(tempSortAttempts);
 
     // Don't regen frames after a pause-unpause
     if (animationFrames.length === 0) {
@@ -103,6 +108,15 @@ export default function SortingVisualizer() {
         case "RadixSort":
           animationFrames = getRadixSortAnimations(bars, highlightEnabled);
           break;
+        case "Bogosort":
+          animationFrames = getBogosortAnimations(bars);
+          break;
+      }
+
+      if (animationFrames === "error") {
+        setSortAttempts("Error")
+        pauseAnim();
+        return
       }
 
       // Push a frame indicating end of animation
@@ -125,6 +139,10 @@ export default function SortingVisualizer() {
     let frameNum = 0;
 
     for (let idx = 0; idx < animationFrames.length; idx++) {
+      // setSortAttempts(sortAttempts + 1)
+      // tempSortAttempts = tempSortAttempts + 1
+      // setSortAttempts(tempSortAttempts);
+
       if (animationFrames[idx].type === "Highlight") {
         // Queue an animation to change color of every
         // index in the object
@@ -242,6 +260,30 @@ export default function SortingVisualizer() {
 
         // frameNum++;
       }
+
+      if (animationFrames[idx].type === "Rebuild") {
+        // Rebuild all bars with new set
+        animationQueue.push(
+          setTimeout(
+            (frame) => {
+              frame.hasPlayed = true;
+              tempSortAttempts = tempSortAttempts + 1
+              setSortAttempts(tempSortAttempts);
+              setCurrFrequency((frame.val / 100) * 6 + 150);
+              setBars(() => {
+                // let data = [...bars];
+                // data[frame.i].height = frame.val;
+                console.log(frame.newBars);
+                return frame.newBars;
+              });
+            },
+            delay * frameNum,
+            animationFrames[idx]
+          )
+        );
+
+        frameNum++;
+      }
     }
   };
 
@@ -289,6 +331,7 @@ export default function SortingVisualizer() {
     // Dequeue animations if they're still playing
     pauseAnim();
     setAnimationFrames([]);
+    setSortAttempts(0);
 
     // Generate n bars, add to bars state array
     let generated_bars = [];
@@ -323,7 +366,7 @@ export default function SortingVisualizer() {
     <>
       <div className="visualizer-container">
         {/* Visualizer View */}
-        <Paper variant="outlined" className="visualizer">
+        <Paper variant="outlined" className="visualizer" sx={{display: "flex", flexDirection: 'column'}}>
           {/* Holds the bars */}
           <div className="bars-container">
             {bars.map((val, i) => (
@@ -339,6 +382,7 @@ export default function SortingVisualizer() {
               />
             ))}
           </div>
+          {sortType==="Bogosort" && <div>Attempts: {sortAttempts}</div>}
         </Paper>
 
         <SortingSettings

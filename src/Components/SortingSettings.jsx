@@ -78,6 +78,7 @@ export default function SortingSettings(props) {
               <MenuItem value={"RadixSort"}>Radix Sort</MenuItem>
               <MenuItem value={"BubbleSort"}>Bubble Sort</MenuItem>
               <MenuItem value={"MergeSort"}>Merge Sort</MenuItem>
+              <MenuItem value={"Bogosort"}>Bogosort</MenuItem>
             </Select>
           </FormControl>
         </div>
